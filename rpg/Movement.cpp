@@ -13,6 +13,7 @@ void UMovement::UpdateCombatEnabled(bool bAttachToHand)
 {
 	IAnimInstance_CI::UpdateCombatEnabled(bAttachToHand);
 	isAttach = bAttachToHand;
+	
 }
 
 

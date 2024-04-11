@@ -22,9 +22,14 @@
 #include "Component/C_StatsComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "C_PlayerController.h"
-
-
-
+#include "Component/C_TargetingComponent.h"
+#include "Actors/C_BaseMagicWeapon.h"
+#include "Actors/C_magicSpell.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Enums/E_DamageType.h"
+#include "rpg/Actors/C_BaseDualWeapon.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include <Perception/AISense_Sight.h>
 
 
 
@@ -82,16 +87,15 @@ ASoulsLikeCharacter::ASoulsLikeCharacter()
 	CombatComponent= CreateDefaultSubobject<UC_CombatComponent>(TEXT("combat"));
 	manger= CreateDefaultSubobject<UManger>(TEXT("Manger"));
 	StatsComponent = CreateDefaultSubobject<UC_StatsComponent>(TEXT("StatsComponent"));
-
-	UGameplayTagsManager& Manager = UGameplayTagsManager::Get();
-	ParentTag = Manager.RequestGameplayTag("character.state");
-	ChildTags = Manager.RequestGameplayTagChildren(ParentTag);
+	TargetingComponent = CreateDefaultSubobject<UC_TargetingComponent>(TEXT("TargetingComponent"));
 	
+
 	manger->stateBegin.AddDynamic(this, &ASoulsLikeCharacter::OnStateBegin);
 	manger->stateEnd.AddDynamic(this, &ASoulsLikeCharacter::OnStateEnd);
 	manger->CharacterActionBegin.AddDynamic(this, &ASoulsLikeCharacter::OnActionBegin);
 	manger->CharacterActionEnd.AddDynamic(this, &ASoulsLikeCharacter::OnActionEnd);
-
+	SetUpSyimulusSource();
+	
 
 }
 
@@ -123,7 +127,8 @@ void ASoulsLikeCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASoulsLikeCharacter::Sprint);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASoulsLikeCharacter::StopSprint);
 
-
+	//Lock on character
+	PlayerInputComponent->BindAction("ToggleLockOn", IE_Pressed, this, &ASoulsLikeCharacter::ToggleLockOn);
 	PlayerInputComponent->BindAxis("Move Forward / Backward", this, &ASoulsLikeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("Move Right / Left", this, &ASoulsLikeCharacter::MoveRight);
 
@@ -150,32 +155,37 @@ void ASoulsLikeCharacter::ToggleCombat()
 		if (IsValid(CombatComponent->GetMainWeapon())) {
 			float playrate = 1.0f;
 			if (CanPreformToggleCombat()) {
+				
 			if (!CombatComponent->IsCombatEnabled()) {
-			
-					if (animInstance) {
-						TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(EChartacterAction::EnterCombat)[0];
-						manger->SetState(EChartacterState::GeneralActionState);
-						manger->SetAction(EChartacterAction::EnterCombat);
-						PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
-					
-
-						
-					}
-				}
-			
-			else {
+				UE_LOG(LogTemp, Warning, TEXT("xxxx %d"), CombatComponent->IsCombatEnabled());
 				if (animInstance) {
 					TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(EChartacterAction::EnterCombat)[0];
 					manger->SetState(EChartacterState::GeneralActionState);
+					manger->SetAction(EChartacterAction::EnterCombat);
+					PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
+					
+				}
+				}
+			
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("yyyyyy %d"), CombatComponent->IsCombatEnabled());
+				if (animInstance) {
+					TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(EChartacterAction::ExitCombat)[0];
+					manger->SetState(EChartacterState::Disabled);
 					manger->SetAction(EChartacterAction::ExitCombat);
 					PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
-
+					
 
 				}
 			}
 		}
 		}
 	
+}
+
+void ASoulsLikeCharacter::ToggleLockOn()
+{
+	TargetingComponent->ToggleLockOn();
 }
 
 void ASoulsLikeCharacter::Intract()
@@ -195,13 +205,49 @@ void ASoulsLikeCharacter::Intract()
 		CollisionObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		OutHit,
 		true
 	);
 	if (hit) {
-		AActor* HitRes = OutHit.GetActor();
-		
+	 	AActor* HitRes = OutHit.GetActor();
+		    AC_BaseWeapon* mainWeapon = CombatComponent->GetMainWeapon();
+			AC_BaseDualWeapon* dualweapon = Cast<AC_BaseDualWeapon>(mainWeapon);
+			AC_BaseMagicWeapon* magicGlove = Cast<AC_BaseMagicWeapon>(mainWeapon);
+			if (mainWeapon)
+			{
+				switch (mainWeapon->CombatType)
+				{
+				case None:
+					break;
+				case Lightsword:
+					mainWeapon->ToggleCombat(false);
+					damageType = EDamageType::MeleDamage;
+					break;
+				case GreatSword:
+				
+					mainWeapon->ToggleCombat(false);
+					damageType = EDamageType::MeleDamage;
+					break;
+				case Axe:
+					mainWeapon->ToggleCombat(false);
+					damageType = EDamageType::MeleDamage;
+					break;
+				case DualSword:
+					dualweapon->ToggleCombat(false);
+					damageType = EDamageType::MeleDamage;
+					break;
+				case MagicHand:
+					magicGlove->ToggleCombat(false);
+					SetIsMagic(true);
+					break;
+				default:
+					break;
+				}
+				
+				
+
+			}
 		if (IInteractive_CI* interacted = Cast<IInteractive_CI>(HitRes)) {
 		  interacted->Intracts(this);
 		}
@@ -211,20 +257,23 @@ void ASoulsLikeCharacter::Intract()
 
 void ASoulsLikeCharacter::LightAttack()
 {
-	bHeavyAttack = false;
-	if (manger->GetCurrentState()==EChartacterState::Attacking) {
+	
 
-		CombatComponent->SetAttackSaved(true);
 
-	}
-	else {
-		ContinueAttack();
-		if (CanPreFormAttack()) {
-			AttackEvent();
-			
-			
+		bHeavyAttack = false;
+		if (manger->GetCurrentState() == EChartacterState::Attacking) {
+
+			CombatComponent->SetAttackSaved(true);
+
 		}
-	}
+		else {
+			ContinueAttack();
+			if (CanPreFormAttack()) {
+				AttackEvent();
+
+
+			}
+		}
 	
 }
 
@@ -320,36 +369,44 @@ void ASoulsLikeCharacter::Dodge()
 
 bool ASoulsLikeCharacter::CanPreformToggleCombat()
 {
-	TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Attacking, EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
-	if (!manger->IsCurrentStateEqualToAny(temp)) {
-		if (!GetCharacterMovement()->IsFalling())
-		return true;
-	}
+	
+		TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Attacking, EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
+		if (!manger->IsCurrentStateEqualToAny(temp)) {
+			if (!GetCharacterMovement()->IsFalling())
+				return true;
+		}
+	
 	return false;
 }
 
 bool ASoulsLikeCharacter::CanPreFormAttack()
 {
-
-	TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Attacking, EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
-	if (!manger->IsCurrentStateEqualToAny(temp)) {
-		if (StatsComponent->GetCurrentStateValue(Estat::Stamina)>10)
-			return true;
+	if (IsValid(CombatComponent->GetMainWeapon())) {
+		if (CombatComponent->GetMainWeapon()->bCombat) {
+			TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Attacking, EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
+			if (!manger->IsCurrentStateEqualToAny(temp)) {
+				if (StatsComponent->GetCurrentStateValue(Estat::Stamina) > 10)
+					return true;
+			}
+		}
 	}
+
 	return false;
 
 }
 
 bool ASoulsLikeCharacter::CanPreformDodge()
 {
-	TArray<TEnumAsByte< EChartacterState>> temp = {  EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
-	if (!manger->IsCurrentStateEqualToAny(temp)) {
-		if (!GetCharacterMovement()->IsFalling()) {
-			if (StatsComponent->GetCurrentStateValue(Estat::Stamina) > 10) {
-				return true;
+	
+		TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
+		if (!manger->IsCurrentStateEqualToAny(temp)) {
+			if (!GetCharacterMovement()->IsFalling()) {
+				if (StatsComponent->GetCurrentStateValue(Estat::Stamina) > 10) {
+					return true;
+				}
 			}
 		}
-	}
+	
 	return false;
 }
 
@@ -443,47 +500,40 @@ void ASoulsLikeCharacter::PerformAttack(TEnumAsByte< EChartacterAction> AttackTy
 
 	if (CanPreFormAttack()) {
 		if (CombatComponent->GetMainWeapon()) {
-			AC_BaseWeapon* x = CombatComponent->GetMainWeapon();
-			int32 size = x->GetActionMontages(AttackType).Num();
 			
-			if (size < AttackIndex) {
-				return;
-			}
-			if (size >= 1) {
+		
+				AC_BaseWeapon* x = CombatComponent->GetMainWeapon();
+				int32 size = x->GetActionMontages(AttackType).Num();
 
-
-
-				if (bRandomIndex) {
-					AttackIndex = FMath::RandRange(0, x->AttackMontage.Num());
+				if (size < AttackIndex) {
+					return;
 				}
-				TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(AttackType)[AttackIndex];
-				if (IsValid(TempMontage)) {
-					manger->SetState(EChartacterState::Attacking);
-					manger->SetAction(AttackType);
-					int32 Value = -1.0f * CombatComponent->GetMainWeapon()->GetStatCostForAction();
-					UE_LOG(LogTemp, Warning, TEXT("hi there %d"), Value);
-					StatsComponent->ModifyCurrentStatValue(Estat::Stamina, Value, true);
-					PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
-					AttackIndex++;
-					CombatComponent->SetAttackCount(AttackIndex);
-					
-					if (AttackIndex > size - 1) {
-						CombatComponent->SetAttackCount(0);
+				if (size >= 1) {
+					if (bRandomIndex) {
+						AttackIndex = FMath::RandRange(0, x->AttackMontage.Num());
+					}
+					TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(AttackType)[AttackIndex];
+					if (IsValid(TempMontage)) {
+						manger->SetState(EChartacterState::Attacking);
+						manger->SetAction(AttackType);
+						
+						int32 Value = -1.0f * CombatComponent->GetMainWeapon()->GetStatCostForAction();
+						UE_LOG(LogTemp, Warning, TEXT("hi there %d"), Value);
+						StatsComponent->ModifyCurrentStatValue(Estat::Stamina, Value, true);
+						PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
+						AttackIndex++;
+						CombatComponent->SetAttackCount(AttackIndex);
+
+						if (AttackIndex > size - 1) {
+							CombatComponent->SetAttackCount(0);
+						}
+						
 					}
 
-
 				}
-
 			}
 		}
-
-
-
-
-
-
-	}
-
+	
 }
 
 void ASoulsLikeCharacter::PreformAction(UAnimMontage* ActionMontage, EChartacterAction Action, EChartacterState state, int32 MontageIndex, bool bRandomIndex)
@@ -572,6 +622,8 @@ void ASoulsLikeCharacter::PerformDeath()
 		CombatComponent->GetMainWeapon()->SimulateWeaponPhysics();
 		
 	}
+
+	GetCapsuleComponent()->DestroyComponent();
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASoulsLikeCharacter::PerformDeathAfterDelay, 4.0f, false);
 		
 	
@@ -584,9 +636,8 @@ void ASoulsLikeCharacter::PerformDeathAfterDelay()
 	}
 	GetMesh()->DestroyComponent();
 
-		
-
-
+	
+	
 }
 
 void ASoulsLikeCharacter::ContinueAttack()
@@ -630,24 +681,39 @@ void ASoulsLikeCharacter::RestCombat()
 
 float ASoulsLikeCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	
-	
-		
-	
-
 	StatsComponent->TakeDamage(DamageAmount);
+	
 
 	
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation());
-
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-		hitParticals,
-		GetActorLocation()
-		);
 	if (CanRecieveHitreaction()) {
-		PlayAnimMontage(HitReaction, 1.0f, FName("Default"));
-		manger->SetState(EChartacterState::Disabled);
-	}
+		if (IsValid(DamageCauser)) {
+			FVector thisVector = this->GetActorForwardVector();
+
+			FVector otherVector = (DamageCauser->GetActorForwardVector());
+			float n = FVector::DotProduct(thisVector, otherVector);
+			if (IsValueInRange(n, -1.0f, 0.1f, true, true)) {
+				UE_LOG(LogTemp, Warning, TEXT("name , %f "), n);
+				bHitFront = true;
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("noname ")); 
+				bHitFront = false;
+			}
+		}
+
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+			hitParticals,
+			 GetActorLocation()
+		);
+		}
+		bisMagic = CombatComponent->bmaigcenabled;
+		UE_LOG(LogTemp, Warning, TEXT("name , %d "), bisMagic);
+		ApplyHitReaction(damageType);
+		if (StatsComponent->GetCurrentStateValue(Estat::Health) == 0) {
+			manger->SetState(EChartacterState::Dead);
+		}
+	
 	return 0.0f;
 }
 
@@ -669,10 +735,24 @@ void ASoulsLikeCharacter::Jump()
 	}
 }
 
+void ASoulsLikeCharacter::SetCanMove(bool isCanMove)
+{
+	bCanMove = isCanMove;
+}
+
+bool ASoulsLikeCharacter::IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax)
+{
+	return (Value >= Min && Value <= Max) || (InclusiveMin && Value == Min) || (InclusiveMax && Value == Max);
+}
+
+
+
 void ASoulsLikeCharacter::OnStateBegin(EChartacterState CharacterState)
 {
 	if (CharacterState == EChartacterState::Dead) {
+		bisGettingTargeted = false;
 		PerformDeath();
+		
 	}
 }
 
@@ -732,13 +812,79 @@ void ASoulsLikeCharacter::DisableSprint()
 {
 }
 
+void ASoulsLikeCharacter::Fire()
+{
+
+		UE_LOG(LogTemp, Warning, TEXT("yyyyyy"));
+		
+	
+
+
+}
+
+void ASoulsLikeCharacter::ApplyHitReaction(EDamageType DamageType)
+{
+
+
+	if (bisMagic) {
+		PerfformKnockdown();
+	}
+	else {
+		PerfformHitStun();
+	}
+		
+
+
+	
+
+}
+
+void ASoulsLikeCharacter::PerfformHitStun()
+{
+	if (bHitFront) {
+		PlayAnimMontage(HitReaction, 1.0f, FName("Default"));
+	}
+	else {
+		PlayAnimMontage(backHitReaction, 1.0f, FName("Default"));
+	}
+	manger->SetState(EChartacterState::Disabled);
+
+}
+
+void ASoulsLikeCharacter::PerfformKnockdown()
+{
+
+	PlayAnimMontage(KnockdownReaction, 1.0f, FName("Default"));
+	PlayAnimMontage(GeettingUpFromKnockdownReaction, 1.0f, FName("Default"));
+	manger->SetState(EChartacterState::Disabled);
+}
+
+void ASoulsLikeCharacter::SetIsMagic(bool isMagic)
+{
+	bisMagic = isMagic;
+}
+
+void ASoulsLikeCharacter::SetUpSyimulusSource()
+{
+
+	stimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	if (stimuliSource) {
+		stimuliSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		stimuliSource->RegisterWithPerceptionSystem();
+	}
 
 
 
 
+}
 
 
 
+void ASoulsLikeCharacter::Tick(float DeltaTime)
+{
+	
+}
+	
 
 
 void ASoulsLikeCharacter::BeginPlay()
@@ -752,6 +898,7 @@ void ASoulsLikeCharacter::BeginPlay()
 	}
 	float num = StatsComponent->GetCurrentStateValue(Estat::Health);
 	UE_LOG(LogTemp, Warning, TEXT("stamina %f"), num);
+	damageType = EDamageType::noDamage;
 }
 
 void ASoulsLikeCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
@@ -771,6 +918,8 @@ void ASoulsLikeCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Lo
 	
 }
 
+
+
 void ASoulsLikeCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
@@ -785,6 +934,7 @@ void ASoulsLikeCharacter::LookUpAtRate(float Rate)
 
 void ASoulsLikeCharacter::MoveForward(float Value)
 {
+	if(bCanMove)
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -799,6 +949,7 @@ void ASoulsLikeCharacter::MoveForward(float Value)
 
 void ASoulsLikeCharacter::MoveRight(float Value)
 {
+	if (bCanMove)
 	if ( (Controller != nullptr) && (Value != 0.0f) )
 	{
 		// find out which way is right

@@ -3,7 +3,7 @@
 #pragma once
 
 
-
+#include "Enums/E_DamageType.h"
 #include "Enums/E_MovementSpeedMode.h"
 #include "Enums/E_CharacterAction.h"
 #include "Enums/E_ChartacterState.h"
@@ -22,7 +22,7 @@ class UC_CombatComponent;
 class AActor;
 class UC_StatsComponent;
 class UManger;
-
+class UC_TargetingComponent;
 
 UCLASS(config=Game)
 class ASoulsLikeCharacter : public ACharacter, public  IAnimInstance_CI ,public  ICombat_CI
@@ -69,6 +69,7 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
+	
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -80,7 +81,7 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-
+	virtual void Tick(float DeltaTime) override;
 	
 
 	
@@ -92,7 +93,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	void ToggleCombat();
-
+	UFUNCTION(BlueprintCallable)
+	void ToggleLockOn();
 
 	UFUNCTION(BlueprintCallable)
 	void Intract();
@@ -159,6 +161,12 @@ public:
 	virtual float TakeDamage(float DamageAmount,struct FDamageEvent const& DamageEvent,class AController* EventInstigator,AActor* DamageCauser	) override;
 	virtual bool CanRecieveDamage()override;
 	virtual void Jump() override;
+	virtual void SetCanMove(bool isCanMove)  override;
+	
+	UFUNCTION()
+	bool IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax);
+
+
 	UFUNCTION()
 	void OnStateBegin( EChartacterState CharacterState);
 	UFUNCTION()
@@ -177,11 +185,26 @@ public:
 	void SprintStaminaCost();
 	UFUNCTION()
 	void DisableSprint();
+	UFUNCTION(BlueprintCallable)
+	void Fire();
+	UFUNCTION()
+	void ApplyHitReaction(EDamageType DamageType);
+	UFUNCTION()
+	void PerfformHitStun();
+	UFUNCTION()
+	void PerfformKnockdown();
+	UFUNCTION()
+	void SetIsMagic(bool isMagic);
 
-
+	void SetUpSyimulusSource();
 
 	//UPROPERTY
 private:
+	UPROPERTY(EditAnywhere)
+	bool bCanMove =true;
+	UPROPERTY(EditAnywhere)
+	bool bHitFront = true;
+
 
 
 	UPROPERTY(EditAnywhere)
@@ -199,7 +222,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	FName PelvisBoneName  ;
 
+
+	 
+
+
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bisGettingTargeted = false;
 	UPROPERTY(EditAnywhere)
 	float Health;
 	UPROPERTY(EditAnywhere)
@@ -210,7 +239,8 @@ public:
 	 UC_StatsComponent* StatsComponent;
 	 UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	 UManger *manger;
-
+	 UPROPERTY(EditAnywhere)
+	 bool bisMagic=false;
 	 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MovmentSpeed")
 	 float WalkingSpeed = 300.0f;
 	 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MovmentSpeed")
@@ -222,30 +252,33 @@ public:
 	class USoundCue *HitSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UParticleSystem* hitParticals;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UAnimMontage* HitReaction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	 FGameplayTag ParentTag;
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<ECombatType> combatType;
+
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<EDamageType> damageType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FGameplayTagContainer ChildTags ;
+	UAnimMontage* HitReaction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UAnimMontage* backHitReaction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UAnimMontage* KnockdownReaction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UAnimMontage* GeettingUpFromKnockdownReaction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UC_TargetingComponent* TargetingComponent;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte < EMovementSpeedMode>  MovmentSpeedMode;
 	private:
 		UPROPERTY(EditAnywhere)
 		FKey TempKey;
-		
 		UPROPERTY(EditAnywhere)
 		UUserWidget* MainWidget;
-
-
-
-
-
-
 		FTimerHandle SprintTimerHandle;
-
+		class UAIPerceptionStimuliSourceComponent* stimuliSource;
+		
 };
 
