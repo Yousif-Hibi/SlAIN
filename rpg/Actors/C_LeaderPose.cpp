@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-#include "rpg/Component/C_StatsComponent.h"
 #include "C_LeaderPose.h"
+#include "rpg/Component/C_StatsComponent.h"
 #include "GameFramework/Character.h"
 #include "rpg/DummyCharacter.h"
 

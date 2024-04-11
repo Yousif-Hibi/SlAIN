@@ -73,6 +73,12 @@ void AC_BaseEquippable::OnEquipped()
 	AttachActor(AttachSocketName);
 }
 
+void AC_BaseEquippable::OnAIEquipped()
+{
+	bIsEquipped = true;
+	AttachActor(AttachSocketName);
+}
+
 void AC_BaseEquippable::AttachActor(FName SocketName)
 {
 	

@@ -3,7 +3,8 @@
 #pragma once
 
 
-
+#include "rpg/Enums/E_DamageType.h"
+#include "rpg/Enums/E_CollisionPart.h"
 #include "rpg/Enums/E_CombatType.h"
 #include "rpg/Interfaces/AnimInstance_CI.h"
 #include "rpg/Enums/E_CharacterAction.h"
@@ -28,30 +29,36 @@ protected:
 	//Functions
 public:
 	void OnEquipped() override;
-	
+	void OnAIEquipped() override;
 	UFUNCTION(BlueprintCallable) 
 	void OnHit(FHitResult hit);
 
 	UFUNCTION(BlueprintCallable)
 	void SimulateWeaponPhysics();
 
-
 	UFUNCTION(BlueprintCallable)
 	TArray<UAnimMontage*> GetActionMontages(EChartacterAction ChartacterAction);
 	UFUNCTION(BlueprintCallable)
 	float GetStatCostForAction();
 	UFUNCTION(BlueprintCallable)
-	int32 GetDamage();
+	int32 GetDamage(bool isAI);
+	UFUNCTION(BlueprintCallable)
+	void ActivateCollision(ECollisionPart collisionPart);
+	UFUNCTION(BlueprintCallable)
+	void DeactivateCollision(ECollisionPart collisionPart);
 
-
+	UFUNCTION(BlueprintCallable)
+	void ToggleCombat(bool bEnableCombat);
 	//Proprtys
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Initialization")
 	FName HandSocketName;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Initialization")
-	bool bIsAttachedToHand;
-
+	bool bIsAI = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Initialization")
+	bool bIsAttachedToHand=false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Initialization")
+	bool bCombat = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	int32 Damege=20;
 	
@@ -87,7 +94,8 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TArray<UAnimMontage*> DodgeMontage;
-
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<EDamageType> DamageType;
 	
 	UPROPERTY(EditAnywhere)
 	class UC_CollisionCombonent* CollisionCombonent;
@@ -98,7 +106,10 @@ public:
 	TMap<TEnumAsByte<EChartacterAction>, float> ActionDamageMultiplyer;
 	UPROPERTY(EditAnywhere)
 	class  UManger* manger;
-
+	UPROPERTY(EditAnywhere)
+	UManger* aimanger;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UDamageType> AttackDamageType ;
 
 
 };

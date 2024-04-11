@@ -46,7 +46,7 @@ void AC_PickupActor::Intracts(AActor* Caller) {
 
 		if (IsValid(SpawnedActor)) {
 
-		
+			
 			SpawnedActor->SetOwner(Caller);
 			SpawnedActor->OnEquipped();
 		}

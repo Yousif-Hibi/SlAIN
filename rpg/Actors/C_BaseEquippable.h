@@ -68,7 +68,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnEquipped();
-
+	virtual void OnAIEquipped();
 	
 
 	UFUNCTION(BlueprintCallable , Category = "ItemMesh")

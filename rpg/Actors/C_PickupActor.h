@@ -2,7 +2,7 @@
 
 #pragma once
 #include "rpg/Interfaces/Interactive_CI.h"
-
+#include "rpg/Enums/E_CollisionPart.h" 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <Components/SphereComponent.h>

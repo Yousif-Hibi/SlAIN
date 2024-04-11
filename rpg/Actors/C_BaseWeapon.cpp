@@ -2,15 +2,14 @@
 
 
 
-
+#include "C_BaseWeapon.h"
 #include "rpg/Enums/E_CharacterAction.h"
 #include "rpg/Component/Manger.h"
 #include "rpg/Component/C_CombatComponent.h"
 #include "rpg/SoulsLikeCharacter.h"
-#include "C_BaseWeapon.h"
 #include "rpg/Component/C_CollisionCombonent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "rpg/AI/C_MasterAI.h"
 
 
 AC_BaseWeapon::AC_BaseWeapon() {
@@ -68,25 +67,67 @@ void AC_BaseWeapon::OnEquipped()
 
 			//resone for crash 
 			anim->UpdateCombatType(CombatType);
-
+			Character->combatType = CombatType;
 			CollisionCombonent->SetCollisonMesh(GetItemMesh());
 			CollisionCombonent->AddActorsToIgnore(GetOwner());
-				
-
-			
-
 		}
 	}
 
 }
 
+void AC_BaseWeapon::OnAIEquipped()
+{
+	AC_BaseEquippable::OnEquipped();
+	auto* Character = Cast<AC_MasterAI>(GetOwner());
+
+	CombatComponent = Character->CombatComponent;
+	aimanger = Character->manger;
+
+	if (CombatComponent) {
+
+		
+		this->AttachActor(HandSocketName);
+		bCombat = true;
+		CombatComponent->SetAICombatEnabled(true);
+
+		
+		AActor* actor = Cast<AActor>(Character);
+
+
+		if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
+			
+			//resone for crash 
+			anim->UpdateCombatType(CombatType);
+			Character->combatType = CombatType;
+			CollisionCombonent->SetCollisonMesh(GetItemMesh());
+			CollisionCombonent->AddActorsToIgnore(GetOwner());
+		}
+	}
+}
+
 void AC_BaseWeapon::OnHit(FHitResult hit)
 {
-	ASoulsLikeCharacter* Character = Cast<ASoulsLikeCharacter>(hit.GetActor());
-	if (Character->CanRecieveDamage()) {
+	auto* Character = Cast<ASoulsLikeCharacter>(hit.GetActor());
+	auto* AICharacter = Cast<AC_MasterAI>(hit.GetActor());
+	if (!hit.GetActor()) {
+	//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
+		return;
+	}
+	if (Character) {
 		UE_LOG(LogTemp, Warning, TEXT("hit %s"), *hit.GetActor()->GetName());
 		UGameplayStatics::ApplyPointDamage(hit.GetActor(),
-			GetDamage(),
+			GetDamage(false),
+			GetOwner()->GetActorForwardVector(),
+			hit,
+			GetInstigatorController(),
+			GetOwner(),
+			nullptr
+		);
+	}
+	else if(AICharacter){
+		UE_LOG(LogTemp, Warning, TEXT("hitai %s"), *hit.GetActor()->GetName());
+		UGameplayStatics::ApplyPointDamage(hit.GetActor(),
+			GetDamage(true),
 			GetOwner()->GetActorForwardVector(),
 			hit,
 			GetInstigatorController(),
@@ -101,6 +142,7 @@ void AC_BaseWeapon::SimulateWeaponPhysics()
 	GetItemMesh()->SetCollisionProfileName(TEXT("PhysicsActor"), true);
 	GetItemMesh()->SetSimulatePhysics(true);
 }
+
 
 TArray<UAnimMontage*> AC_BaseWeapon::GetActionMontages(EChartacterAction ChartacterAction)
 {
@@ -133,6 +175,7 @@ TArray<UAnimMontage*> AC_BaseWeapon::GetActionMontages(EChartacterAction Chartac
 float AC_BaseWeapon::GetStatCostForAction()
 {
 	float* value = 0;
+
 	if (IsValid(manger)) {
 		value = ActionStatCost.Find(manger->GetCurrentAction());
 		
@@ -141,17 +184,61 @@ float AC_BaseWeapon::GetStatCostForAction()
 	return 1;
 }
 
-int32 AC_BaseWeapon::GetDamage()
+int32 AC_BaseWeapon::GetDamage(bool isAI)
 {
-	float value = 0;
-	if (IsValid(manger)) {
-		value = *ActionDamageMultiplyer.Find(manger->GetCurrentAction());
-		FMath::Clamp(value, 1, value);
-		value = Damege * value;
-		return value;
+	float value = 1;
+	
+	if (!isAI) {
+	
+				return Damege;
 
+			
+		
+	}
+	else {
+		if (IsValid(manger)) {
+			UE_LOG(LogTemp, Warning, TEXT("hit %s"), *manger->GetOwner()->GetName());
+			if (manger->GetCurrentAction() != EChartacterAction::NoAction) {
+				value = *ActionDamageMultiplyer.Find(manger->GetCurrentAction());
+
+				FMath::Clamp(value, 1, value);
+
+				value = Damege * value;
+				return Damege;
+
+			}
+		}
 	}
 
 	return 0;
 }
 
+void AC_BaseWeapon::ActivateCollision(ECollisionPart collisionPart)
+{
+
+	CollisionCombonent->ActivateColision();
+}
+
+void AC_BaseWeapon::DeactivateCollision(ECollisionPart collisionPart)
+{
+	CollisionCombonent->DeactivatColision();
+	
+}
+
+void AC_BaseWeapon::ToggleCombat(bool bEnableCombat)
+{
+	UE_LOG(LogTemp, Warning, TEXT("bbbbbb %d"), bEnableCombat);
+	bCombat = bEnableCombat;
+	CombatComponent->SetCombatEnabled(bEnableCombat);
+	if (bEnableCombat)
+	{
+		
+		AttachActor(HandSocketName);
+
+	}
+	else
+	{
+		
+			AttachActor(AttachSocketName);
+	}
+}
