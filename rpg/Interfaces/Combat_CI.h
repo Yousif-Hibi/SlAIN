@@ -10,7 +10,7 @@
 UINTERFACE(MinimalAPI)
 class UCombat_CI : public UInterface
 {
-	GENERATED_BODY()
+	GENERATED_BODY() 
 };
 
 /**
@@ -30,5 +30,7 @@ public:
 	virtual  void RestCombat() {}
 	virtual FRotator  GetDesiredRotation() { return FRotator(); }
 	virtual bool CanRecieveDamage() { return false; }
-
+	virtual  void SetCanMove(bool isCanMove) { }
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	  int AIAttack();
 };

@@ -20,6 +20,9 @@ enum ECombatType
 {
 	None,
 	Lightsword,
-	GreatSword
+	GreatSword,
+	Axe,
+	DualSword,
+	MagicHand
 };
 

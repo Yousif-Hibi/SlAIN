@@ -155,10 +155,9 @@ void UC_StatsComponent::TakeDamage(float InDamage)
 	
 	ModifyCurrentStatValue(Health, LocalDamage, true);
 	if (GetCurrentStateValue(Health) <= 0) {
-
-		ASoulsLikeCharacter* Character = Cast<ASoulsLikeCharacter>(GetOwner());
-	 Character->manger->SetState(EChartacterState::Dead);
-
+		
+		SetCurrentStateValue(Estat::Health, 0);
+		
 	}
 }
 
@@ -173,7 +172,7 @@ void UC_StatsComponent::RegenStamina()
 		if (GetCurrentStateValue(Stamina) >= MaxStamina) {
 
 			UKismetSystemLibrary::K2_ClearTimer(this, "RegenStamina");
-
+		
 		}
 	}
 
@@ -203,9 +202,13 @@ void UC_StatsComponent::StartRegen(Estat stat)
 		UKismetSystemLibrary::K2_ClearTimer(this, "RegenStamina");
 		UKismetSystemLibrary::RetriggerableDelay(this, 5.0f, LatentInfo);
 		UKismetSystemLibrary::K2_SetTimer(this, "RegenStamina",0.3f, true);
-		
-		
+		if (GetCurrentStateValue(Stamina) >= GetMaxStateValue(Stamina)) {
+			
+			UKismetSystemLibrary::K2_ClearTimer(this, "RegenStamina");
 
+		}
+		
+ 
 		break;
 
 	case Estat::Armor:

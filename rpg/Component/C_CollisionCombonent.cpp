@@ -139,19 +139,21 @@ bool UC_CollisionCombonent::CollisionTrace()
 		StartLocation,
 		EndLocation,
 		TraceRadius,
-		CollisionObjectTypes,  // Assuming CollisionObjectTypes is declared and populated
+		CollisionObjectTypes,  
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		OutHit,
 		true
 	);
 
 	if (OnHit) {
-
+		
 		LastHit = OutHit;
-
+		UC_CollisionCombonent* Singleton = GetEventSingleton();
+		Singleton->LastHit = OutHit;
 		if (!AreadyHitActors.Contains(LastHit.GetActor())) {
+			
 			HitActor = LastHit.GetActor();
 			AreadyHitActors.Add(HitActor);
 			CallEventDispatherCpp();

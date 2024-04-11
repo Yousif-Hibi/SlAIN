@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "C_CombatComponent.generated.h"
-
+   
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RPG_API UC_CombatComponent : public UActorComponent
@@ -32,7 +32,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCombatEnabled(bool isEnabled);
-
+	UFUNCTION(BlueprintCallable)
+	void SetAICombatEnabled(bool isEnabled);
 	UFUNCTION(BlueprintCallable)
 	bool IsCombatEnabled();
 
@@ -55,7 +56,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	AC_BaseWeapon* GetMainWeapon();
 
-
+	UPROPERTY(EditAnywhere)
+	bool bmaigcenabled = false;
 	//UPROPERTYS
 private:
 
@@ -65,7 +67,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	bool bCombatEnabled = false;
-
+	
 	UPROPERTY(EditAnywhere)
 	bool bAttackSaved = false;
 

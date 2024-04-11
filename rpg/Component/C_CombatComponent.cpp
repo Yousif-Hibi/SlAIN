@@ -4,6 +4,7 @@
 #include "C_CombatComponent.h"
 #include "rpg/Actors/C_BaseWeapon.h"
 #include "rpg/SoulsLikeCharacter.h"
+#include "rpg/AI/C_MasterAI.h"
 
 // Sets default values for this component's properties
 UC_CombatComponent::UC_CombatComponent()
@@ -47,7 +48,57 @@ void UC_CombatComponent::SetCombatEnabled(bool isEnabled)
 {
 	bCombatEnabled = isEnabled;
 	ASoulsLikeCharacter* Character = Cast<ASoulsLikeCharacter>(GetOwner());
-	UE_LOG(LogTemp, Warning, TEXT("bbbbbb %d"),isEnabled);
+	UE_LOG(LogTemp, Warning, TEXT("xccxcxcxcxc %d"),isEnabled);
+	UE_LOG(LogTemp, Warning, TEXT("xccxcxcxcxc %d"), bCombatEnabled);
+	switch (GetMainWeapon()->CombatType)
+	{
+	case None:
+		break;
+	case Lightsword:
+		UE_LOG(LogTemp, Warning, TEXT("light"));
+		break;
+	case GreatSword:
+		break;
+	case DualSword:
+		break;
+	case MagicHand:
+		UE_LOG(LogTemp, Warning, TEXT("mai"));
+		bmaigcenabled = true;
+		break;
+	default:
+		break;
+	}
+	if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
+
+		anim->UpdateCombatEnabled(bCombatEnabled);
+
+	}
+}
+
+void UC_CombatComponent::SetAICombatEnabled(bool isEnabled)
+{
+	bCombatEnabled = isEnabled;
+	auto* Character = Cast<AC_MasterAI>(GetOwner());
+	UE_LOG(LogTemp, Warning, TEXT("xccxcxcxcxc %d"), isEnabled);
+	UE_LOG(LogTemp, Warning, TEXT("xccxcxcxcxc %d"), bCombatEnabled);
+	switch (GetMainWeapon()->CombatType)
+	{
+	case None:
+		break;
+	case Lightsword:
+		UE_LOG(LogTemp, Warning, TEXT("light"));
+		break;
+	case GreatSword:
+		break;
+	case DualSword:
+		break;
+	case MagicHand:
+		UE_LOG(LogTemp, Warning, TEXT("mai"));
+		bmaigcenabled = true;
+		break;
+	default:
+		break;
+	}
 	if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
 
 		anim->UpdateCombatEnabled(bCombatEnabled);
