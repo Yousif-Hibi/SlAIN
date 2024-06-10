@@ -162,6 +162,9 @@ public:
 	virtual bool CanRecieveDamage()override;
 	virtual void Jump() override;
 	virtual void SetCanMove(bool isCanMove)  override;
+	virtual bool ReserveAttakTokken(int32 Amount)  override;
+	virtual void ReturnAttackTokken(int32 Amount)  override;
+
 	
 	UFUNCTION()
 	bool IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax);
@@ -235,8 +238,8 @@ public:
 	float AttackHeldTime;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	 UC_CombatComponent* CombatComponent;
-	 UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	 UC_StatsComponent* StatsComponent;
+	 UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	 UC_StatsComponent* StatsComponents;
 	 UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	 UManger *manger;
 	 UPROPERTY(EditAnywhere)

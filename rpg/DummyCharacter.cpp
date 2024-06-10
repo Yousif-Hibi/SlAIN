@@ -94,7 +94,7 @@ void ADummyCharacter::OnActionEnd(EChartacterAction CharacterAction)
 bool ADummyCharacter::CanBeTarget()
 {
 	TArray<TEnumAsByte< EChartacterState>> temp = {  EChartacterState::Dead };
-	if (StatsComponent->GetCurrentStateValue(Estat::Health)==0) {
+	if (StatsComponents->GetCurrentStateValue(Estat::Health)==0) {
 		UE_LOG(LogTemp, Warning, TEXT("DEAD"));
 		return false;
 	}

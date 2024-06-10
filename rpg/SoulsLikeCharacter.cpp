@@ -30,7 +30,7 @@
 #include "rpg/Actors/C_BaseDualWeapon.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include <Perception/AISense_Sight.h>
-
+#include "rpg/AI/C_QuestKnight.h"
 
 
 
@@ -86,9 +86,11 @@ ASoulsLikeCharacter::ASoulsLikeCharacter()
 
 	CombatComponent= CreateDefaultSubobject<UC_CombatComponent>(TEXT("combat"));
 	manger= CreateDefaultSubobject<UManger>(TEXT("Manger"));
-	StatsComponent = CreateDefaultSubobject<UC_StatsComponent>(TEXT("StatsComponent"));
+	StatsComponents = CreateDefaultSubobject<UC_StatsComponent>(TEXT("StatsComponentss"));
 	TargetingComponent = CreateDefaultSubobject<UC_TargetingComponent>(TEXT("TargetingComponent"));
-	
+
+
+	StatsComponents->tokkenAmount = 1;
 
 	manger->stateBegin.AddDynamic(this, &ASoulsLikeCharacter::OnStateBegin);
 	manger->stateEnd.AddDynamic(this, &ASoulsLikeCharacter::OnStateEnd);
@@ -112,7 +114,6 @@ void ASoulsLikeCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("ToggleCombat", IE_Pressed, this, &ASoulsLikeCharacter::ToggleCombat );
 	//Intract
 	PlayerInputComponent->BindAction("Intract", IE_Pressed, this, &ASoulsLikeCharacter::Intract);
-
 	//AttackTypes
 	PlayerInputComponent->BindAction("LightAttack", IE_Pressed, this, &ASoulsLikeCharacter::ChargedAttack);
 	PlayerInputComponent->BindAction("LightAttack", IE_Released, this, &ASoulsLikeCharacter::LightAttack);
@@ -211,7 +212,10 @@ void ASoulsLikeCharacter::Intract()
 	);
 	if (hit) {
 	 	AActor* HitRes = OutHit.GetActor();
-		    AC_BaseWeapon* mainWeapon = CombatComponent->GetMainWeapon();
+		if (HitRes)
+		{
+
+			AC_BaseWeapon* mainWeapon = CombatComponent->GetMainWeapon();
 			AC_BaseDualWeapon* dualweapon = Cast<AC_BaseDualWeapon>(mainWeapon);
 			AC_BaseMagicWeapon* magicGlove = Cast<AC_BaseMagicWeapon>(mainWeapon);
 			if (mainWeapon)
@@ -225,7 +229,7 @@ void ASoulsLikeCharacter::Intract()
 					damageType = EDamageType::MeleDamage;
 					break;
 				case GreatSword:
-				
+
 					mainWeapon->ToggleCombat(false);
 					damageType = EDamageType::MeleDamage;
 					break;
@@ -244,14 +248,26 @@ void ASoulsLikeCharacter::Intract()
 				default:
 					break;
 				}
-				
-				
+
+
 
 			}
-		if (IInteractive_CI* interacted = Cast<IInteractive_CI>(HitRes)) {
-		  interacted->Intracts(this);
+			if (IInteractive_CI* interacted = Cast<IInteractive_CI>(HitRes)) {
+				interacted->Intracts(this);
+			}
 		}
-		
+	}
+	UPrimitiveComponent* HitPrimitiveComponent = OutHit.GetComponent();
+	if (HitPrimitiveComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("talking to npc1"));
+		auto* HitCharacter = Cast<AC_QuestKnight>(HitPrimitiveComponent->GetOwner());
+		if (HitCharacter)
+		{
+			if (IInteractive_CI* interacted = Cast<IInteractive_CI>(HitCharacter)) {
+				interacted->TalkToNPC();
+			}
+		}
 	}
 }
 
@@ -385,7 +401,7 @@ bool ASoulsLikeCharacter::CanPreFormAttack()
 		if (CombatComponent->GetMainWeapon()->bCombat) {
 			TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Attacking, EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
 			if (!manger->IsCurrentStateEqualToAny(temp)) {
-				if (StatsComponent->GetCurrentStateValue(Estat::Stamina) > 10)
+				if (StatsComponents->GetCurrentStateValue(Estat::Stamina) > 10)
 					return true;
 			}
 		}
@@ -401,7 +417,7 @@ bool ASoulsLikeCharacter::CanPreformDodge()
 		TArray<TEnumAsByte< EChartacterState>> temp = { EChartacterState::Dead, EChartacterState::Disabled, EChartacterState::Dodging, EChartacterState::GeneralActionState };
 		if (!manger->IsCurrentStateEqualToAny(temp)) {
 			if (!GetCharacterMovement()->IsFalling()) {
-				if (StatsComponent->GetCurrentStateValue(Estat::Stamina) > 10) {
+				if (StatsComponents->GetCurrentStateValue(Estat::Stamina) > 10) {
 					return true;
 				}
 			}
@@ -454,7 +470,7 @@ void ASoulsLikeCharacter::PreformDodge(int32 MontageIndex, bool bRandomIndex)
 					manger->SetAction(EChartacterAction::Dodge);
 
 					int32 Value = -1.0f * CombatComponent->GetMainWeapon()->GetStatCostForAction();
-					StatsComponent->ModifyCurrentStatValue(Estat::Stamina,Value, true);
+					StatsComponents->ModifyCurrentStatValue(Estat::Stamina,Value, true);
 					
 					PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
 
@@ -519,7 +535,7 @@ void ASoulsLikeCharacter::PerformAttack(TEnumAsByte< EChartacterAction> AttackTy
 						
 						int32 Value = -1.0f * CombatComponent->GetMainWeapon()->GetStatCostForAction();
 						UE_LOG(LogTemp, Warning, TEXT("hi there %d"), Value);
-						StatsComponent->ModifyCurrentStatValue(Estat::Stamina, Value, true);
+						StatsComponents->ModifyCurrentStatValue(Estat::Stamina, Value, true);
 						PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
 						AttackIndex++;
 						CombatComponent->SetAttackCount(AttackIndex);
@@ -560,7 +576,7 @@ void ASoulsLikeCharacter::PreformAction(UAnimMontage* ActionMontage, EChartacter
 					manger->SetState(state);
 					manger->SetAction(Action);
 					int32 Value = CombatComponent->GetMainWeapon()->GetStatCostForAction();
-					StatsComponent->ModifyCurrentStatValue(Estat::Stamina,Value, true);
+					StatsComponents->ModifyCurrentStatValue(Estat::Stamina,Value, true);
 					PlayAnimMontage(ActionMontage, 1.0f, FName("Default"));
 
 
@@ -681,7 +697,7 @@ void ASoulsLikeCharacter::RestCombat()
 
 float ASoulsLikeCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	StatsComponent->TakeDamage(DamageAmount);
+	StatsComponents->TakeDamage(DamageAmount);
 	
 
 	
@@ -710,7 +726,7 @@ float ASoulsLikeCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Da
 		bisMagic = CombatComponent->bmaigcenabled;
 		UE_LOG(LogTemp, Warning, TEXT("name , %d "), bisMagic);
 		ApplyHitReaction(damageType);
-		if (StatsComponent->GetCurrentStateValue(Estat::Health) == 0) {
+		if (StatsComponents->GetCurrentStateValue(Estat::Health) == 0) {
 			manger->SetState(EChartacterState::Dead);
 		}
 	
@@ -738,6 +754,16 @@ void ASoulsLikeCharacter::Jump()
 void ASoulsLikeCharacter::SetCanMove(bool isCanMove)
 {
 	bCanMove = isCanMove;
+}
+
+bool ASoulsLikeCharacter::ReserveAttakTokken(int32 Amount)
+{
+	return StatsComponents->ReserveToken(Amount);
+}
+
+void ASoulsLikeCharacter::ReturnAttackTokken(int32 Amount)
+{
+	StatsComponents->ReturnToken(Amount);
 }
 
 bool ASoulsLikeCharacter::IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax)
@@ -798,8 +824,8 @@ TEnumAsByte < EMovementSpeedMode> ASoulsLikeCharacter::GetMovmentSpeedMode()
 void ASoulsLikeCharacter::SprintStaminaCost()
 {
 	
-		StatsComponent->ModifyCurrentStatValue(Estat::Stamina, -2, true);
-		if (StatsComponent->GetCurrentStateValue(Estat::Stamina) <= 10) {
+		StatsComponents->ModifyCurrentStatValue(Estat::Stamina, -2, true);
+		if (StatsComponents->GetCurrentStateValue(Estat::Stamina) <= 10) {
 			
 			StopSprint();
 		}
@@ -891,12 +917,11 @@ void ASoulsLikeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	StatsComponent->InitialState();
+	StatsComponents->InitialState();
 	if (MainWidget) {
-		
 		MainWidget->AddToPlayerScreen();
 	}
-	float num = StatsComponent->GetCurrentStateValue(Estat::Health);
+	float num = StatsComponents->GetCurrentStateValue(Estat::Health);
 	UE_LOG(LogTemp, Warning, TEXT("stamina %f"), num);
 	damageType = EDamageType::noDamage;
 }
