@@ -39,8 +39,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "StateRegen")
 	float StaminaRegenRate = 2.0f;
-
 	
+	UPROPERTY(EditAnywhere)
+	int32 tokkenAmount= 1;
+
 	UPROPERTY(EditAnywhere)
 	float LocalDamage = 0;
 
@@ -87,7 +89,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RegenStamina();
-
+	UFUNCTION(BlueprintCallable)
+	void RegenHealth();
 
 	UFUNCTION(BlueprintCallable)
 	void StartRegen(Estat stat);
@@ -96,8 +99,11 @@ public:
 	void dealyRegen();
 
 	
+	UFUNCTION(BlueprintCallable)
+	bool ReserveToken(int32 Amount);
 
-
+	UFUNCTION(BlueprintCallable)
+	void ReturnToken(int32 Amount);
 
 
 

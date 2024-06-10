@@ -23,7 +23,7 @@ UC_StatsComponent::UC_StatsComponent()
 void UC_StatsComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	// ...
 	
 }
@@ -116,9 +116,15 @@ void UC_StatsComponent::InitialState()
 	}
 
 }
-
 void UC_StatsComponent::ModifyCurrentStatValue(Estat stat, float Value, bool bShouldRegenrate)
 {
+	if (!GetWorld())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UC_StatsComponent: No world context found in ModifyCurrentStatValue."));
+		return;
+	}
+
+	// Rest of the code
 	if (bShouldRegenrate) {
 		checkRegen = false;
 		if (UKismetSystemLibrary::K2_IsTimerActive(this, "dealyRegen")) {
@@ -126,23 +132,16 @@ void UC_StatsComponent::ModifyCurrentStatValue(Estat stat, float Value, bool bSh
 		}
 	}
 	if (CurrentState.Contains(stat)) {
-		
-	   float Temp=GetCurrentStateValue(stat) + Value;
-	  
-	  Temp= FMath::Clamp(Temp, 0, GetMaxStateValue(stat));
-	  
-
-	  SetCurrentStateValue(stat, Temp);
-	  
-	  if (bShouldRegenrate) {
-		  temp = stat;
-
-		  UKismetSystemLibrary::K2_SetTimer(this, "dealyRegen", 5.0f, true);
-	  }
-	  
+		float Temp = GetCurrentStateValue(stat) + Value;
+		Temp = FMath::Clamp(Temp, 0, GetMaxStateValue(stat));
+		SetCurrentStateValue(stat, Temp);
+		if (bShouldRegenrate) {
+			temp = stat;
+			UKismetSystemLibrary::K2_SetTimer(this, "dealyRegen", 5.0f, true);
+		}
 	}
-
 }
+
 
 void UC_StatsComponent::TakeDamage(float InDamage)
 {
@@ -178,6 +177,15 @@ void UC_StatsComponent::RegenStamina()
 
 }
 
+void UC_StatsComponent::RegenHealth()
+{
+	float MaxHealth = GetMaxStateValue(Health);
+	float HealthRegen = 5.0f + GetCurrentStateValue(Health);
+	float HTmp = FMath::Clamp(HealthRegen, 0, MaxHealth);
+	SetCurrentStateValue(Health, HTmp);
+	
+}
+
 void UC_StatsComponent::StartRegen(Estat stat)
 {
 
@@ -190,7 +198,8 @@ void UC_StatsComponent::StartRegen(Estat stat)
 		break;
 
 	case Estat::Health:
-		// logic for 'Health' enum entry
+
+	
 	
 		break;
 
@@ -227,6 +236,21 @@ void UC_StatsComponent::dealyRegen()
 {
 	checkRegen = true;
 	StartRegen(temp);
+}
+
+bool UC_StatsComponent::ReserveToken(int32 Amount)
+{
+	if (Amount <= tokkenAmount) {
+		tokkenAmount = tokkenAmount - Amount;
+		return true;
+	}
+	return false;
+}
+
+void UC_StatsComponent::ReturnToken(int32 Amount)
+{
+	tokkenAmount = Amount + tokkenAmount;
+
 }
 
 
