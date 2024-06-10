@@ -15,8 +15,8 @@ UCLASS()
 class RPG_API AC_AIController : public AAIController
 {
 	GENERATED_BODY()
-
-
+protected:
+	virtual void BeginPlay() override;
 public:
 
 	explicit AC_AIController(FObjectInitializer const& ObjectInitializer);
@@ -39,6 +39,15 @@ private:
 	UFUNCTION()
 	void OnTargetDetected(AActor* Actor, FAIStimulus const stimulus);
 
+	UFUNCTION()
+	void OnTargetPerceptionForgotten(AActor* Actor);
+	
+
+
 	FTimerHandle TimerHandle;
 	void SetPlayerTarget();
+
+	
+	TArray<AActor*> KnownPerceivedActors;
+
 };

@@ -98,6 +98,10 @@ public:
 	virtual void Jump() override;
 	virtual void SetCanMove(bool isCanMove)  override;
 	virtual bool CanBeTarget() override;
+
+	virtual bool ReserveAttakTokken(int32 Amount)  override;
+	virtual void ReturnAttackTokken(int32 Amount)  override;
+
 	UFUNCTION()
 	bool IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax);
 	UFUNCTION()
@@ -134,6 +138,8 @@ public:
 	UFUNCTION()
 	void SetIsMagic(bool isMagic);
 
+	UFUNCTION()
+	void returnTokken();
 	UFUNCTION()
 	UBehaviorTree* GetBehaviorTree();
 
@@ -199,6 +205,10 @@ public:
 	class USoundCue* HitSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UParticleSystem* hitParticals;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	 UParticleSystem * healParticals;
+
 	UPROPERTY(EditAnywhere)
 	TEnumAsByte<ECombatType> combatType;
 
@@ -226,7 +236,8 @@ public:
 	class UC_CollisionCombonent * CollisionCombonent;
 
 
-
+	UPROPERTY(EditAnywhere)
+	bool IshasTokken=true;
 
 
 
@@ -242,9 +253,11 @@ private:
 	UUserWidget* MainWidget;
 
 
+	
 
 
 
+	FTimerHandle tokkenTimerHandle;
 	FTimerHandle SprintTimerHandle;
 
 };

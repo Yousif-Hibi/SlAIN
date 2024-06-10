@@ -16,7 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include <Sound/SoundCue.h>
 #include "Components/StaticMeshComponent.h"
-#include "Kismet/GameplayStatics.h"
+
 #include "GameplayTagsManager.h"
 #include "rpg/Component/Manger.h"
 #include "GameFramework/PlayerController.h"
@@ -34,7 +34,7 @@
 #include <Perception/AIPerceptionListenerInterface.h>
 #include <AIController.h>
 #include <Perception/AISense_Damage.h>
-
+#include "rpg/SoulsLikeCharacter.h"
 
 
 
@@ -83,7 +83,7 @@ AC_MasterAI::AC_MasterAI()
 	manger->CharacterActionEnd.AddDynamic(this, &AC_MasterAI::OnActionEnd);
 	
 	CollisionCombonent= CreateDefaultSubobject<UC_CollisionCombonent>(TEXT("CollisionCombonent"));
-
+	
 }
 
 
@@ -241,11 +241,16 @@ void AC_MasterAI::PreformDodge(int32 MontageIndex, bool bRandomIndex)
 
 void AC_MasterAI::AttackEvent()
 {
-	
-	if (mainWeapon) {
-		
+	if (ASoulsLikeCharacter* const PlayerCharacter =Cast<ASoulsLikeCharacter> (UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+		if (mainWeapon) {
+			if (PlayerCharacter->StatsComponents->ReserveToken(1)) {
+				IshasTokken = false;
 				PerformAttack(EChartacterAction::LightAttack, CombatComponent->GetAttackCount(), false);
-		
+				GetWorldTimerManager().SetTimer(tokkenTimerHandle , this, &AC_MasterAI::returnTokken, 5.0f, false);
+
+			}
+
+		}
 	}
 }
 
@@ -279,7 +284,7 @@ void AC_MasterAI::PerformAttack(TEnumAsByte< EChartacterAction> AttackType, int3
 					PlayAnimMontage(LightAttack, 1.0f, FName("Default"));
 					AttackIndex++;
 					CombatComponent->SetAttackCount(AttackIndex);
-
+					
 					if (AttackIndex > size - 1) {
 						CombatComponent->SetAttackCount(0);
 					}
@@ -426,10 +431,12 @@ FRotator AC_MasterAI::GetDesiredRotation()
 void AC_MasterAI::RestCombat()
 {
 	//ICombat_CI::RestCombat();
-	UE_LOG(LogTemp, Warning, TEXT("rest "));
+	 
 	CombatComponent->RestAttack();
 	manger->RestState();
 	manger->SetAction(EChartacterAction::NoAction);
+
+	
 }
 
 float AC_MasterAI::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -469,7 +476,7 @@ float AC_MasterAI::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	}
 	bisMagic = CombatComponent->bmaigcenabled;
 	UE_LOG(LogTemp, Warning, TEXT("name , %d "), bisMagic);
-	ApplyHitReaction(damageType);
+	PerfformHitStun();
 	
 	
 	
@@ -508,6 +515,16 @@ bool AC_MasterAI::CanBeTarget()
 		return false;
 	}
 	return true;
+}
+
+bool AC_MasterAI::ReserveAttakTokken(int32 Amount)
+{
+	return StatsComponent->ReserveToken(Amount);
+}
+
+void AC_MasterAI::ReturnAttackTokken(int32 Amount)
+{
+	StatsComponent->ReturnToken(Amount);
 }
 
 bool AC_MasterAI::IsValueInRange(float Value, float Min, float Max, bool InclusiveMin, bool InclusiveMax)
@@ -611,6 +628,7 @@ void AC_MasterAI::ApplyHitReaction(EDamageType DamageType)
 
 void AC_MasterAI::PerfformHitStun()
 {
+	UE_LOG(LogTemp, Warning, TEXT(" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx "));
 	if (bHitFront) {
 		PlayAnimMontage(HitReaction, 1.0f, FName("Default"));
 	}
@@ -634,6 +652,15 @@ void AC_MasterAI::PerfformKnockdown()
 void AC_MasterAI::SetIsMagic(bool isMagic)
 {
 	bisMagic = isMagic;
+}
+
+void AC_MasterAI::returnTokken()
+{
+	if (ASoulsLikeCharacter* PlayerCharacter = Cast<ASoulsLikeCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+		PlayerCharacter->StatsComponents->ReturnToken(1);
+		IshasTokken = true;
+	}
+
 }
 
 UBehaviorTree* AC_MasterAI::GetBehaviorTree()
@@ -669,6 +696,7 @@ void AC_MasterAI::Tick(float DeltaTime)
 
 void AC_MasterAI::BeginPlay()
 {
+
 	Super::BeginPlay();
 
 	StatsComponent->InitialState();
@@ -688,5 +716,6 @@ void AC_MasterAI::BeginPlay()
 	mainWeapon = GetWorld()->SpawnActor<AC_BaseWeapon>(ToSpawn, vec, rotat, SpawnPerams);
 	CombatComponent->SetMainWeapon(mainWeapon);
 	mainWeapon->OnAIEquipped();
+
 
 }

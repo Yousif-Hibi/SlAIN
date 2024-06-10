@@ -13,6 +13,9 @@
 #include "Animation/AnimMontage.h"
 #include "rpg/Interfaces/Combat_CI.h"
 #include "Animation/AnimInstance.h"
+#include "rpg/Component/C_StatsComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "rpg/SoulsLikeCharacter.h"
 
 
 UBTTask_MeleeAttack::UBTTask_MeleeAttack()
@@ -32,15 +35,15 @@ EBTNodeResult::Type UBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& Own
 			if (auto* const icombat = Cast<ICombat_CI>(AIcharacter)) {
 				if (MontageHasFinished(AIcharacter)) {
 					icombat->Execute_AIAttack(AIcharacter);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+					return EBTNodeResult::Succeeded;
+
 				}
 			}
 			
 		}
 	}
-
-
-	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-	return EBTNodeResult::Type();
+	return EBTNodeResult::Failed;
 }
 
 bool UBTTask_MeleeAttack::MontageHasFinished(AC_MasterAI* const AICharacter)

@@ -4,6 +4,7 @@
 #include "C_AIController.h"
 #include "C_MasterAI.h"
 #include <BehaviorTree/BehaviorTree.h>
+#include <Perception/AIPerceptionTypes.h>
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AIPerceptionComponent.h" 
 #include <rpg/SoulsLikeCharacter.h>
@@ -12,11 +13,25 @@
 #include "rpg/Component/C_StatsComponent.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include <Kismet/GameplayStatics.h>
+#include "Perception/AIPerceptionTypes.h"
+#include "Perception/AISenseEvent.h"
+#include "Navigation/CrowdFollowingComponent.h"
 
-AC_AIController::AC_AIController(FObjectInitializer const& ObjectInitializer)
+
+void AC_AIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+
+//	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC_AIController::OnTargetPerceptionForgotten, 2.f, true);
+}
+
+AC_AIController::AC_AIController(FObjectInitializer const& ObjectInitializer) 
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
 {
 	SetUpPerceptionSystem();
 
+	
 }
 
 ASoulsLikeCharacter* AC_AIController::GetCharacter()
@@ -33,7 +48,7 @@ void AC_AIController::OnPossess(APawn* InPawn)
 		if (tree) {
 
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AC_AIController::SetPlayerTarget, 2.f, false);
-
+			
 		}
 	}
 }
@@ -58,9 +73,18 @@ void AC_AIController::SetUpPerceptionSystem()
 
 			GetPerceptionComponent()->SetDominantSense(*sightConfig->GetSenseImplementation());
 			GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AC_AIController::OnTargetDetected);
-			GetPerceptionComponent()->ConfigureSense(*sightConfig);
-		
 			
+			GetPerceptionComponent()->ConfigureSense(*sightConfig);
+			
+			GetAIPerceptionComponent()->GetKnownPerceivedActors(GetPerceptionComponent()->GetDominantSense(), KnownPerceivedActors);
+			
+			
+			
+
+			GetPerceptionComponent()->OnTargetPerceptionForgotten.AddDynamic(this, &AC_AIController::OnTargetPerceptionForgotten);
+
+			
+
 			hearingConfig->HearingRange = 500;
 			hearingConfig->SetMaxAge(5.0f);
 
@@ -83,10 +107,13 @@ void AC_AIController::SetUpPerceptionSystem()
 			GetPerceptionComponent()->ConfigureSense(*otherhearingConfig);
 			
 			GetPerceptionComponent()->ConfigureSense(*DamageConfig);
+
+			
+			
+			
 		}
 
-
-
+		
 }
 
 
@@ -97,7 +124,26 @@ void AC_AIController::OnTargetDetected(AActor* Actor, FAIStimulus const stimulus
 	if ( playerCharacter ) {
 		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", stimulus.WasSuccessfullySensed());
 	}
+	if (stimulus.GetAge()==4.0f) {
+		UE_LOG(LogTemp, Warning, TEXT("forgot"));
+	}
+	if(!stimulus.IsActive()) {
+		UE_LOG(LogTemp, Warning, TEXT("cant see player"));
+		
+	
+	}
 }
+
+void AC_AIController::OnTargetPerceptionForgotten(AActor* Actor)
+{
+	//if (KnownPerceivedActors.Num() ==0 ) {
+		UE_LOG(LogTemp, Warning, TEXT("forgot"));
+	//}
+}
+
+
+
+
 
 void AC_AIController::SetPlayerTarget()
 {
