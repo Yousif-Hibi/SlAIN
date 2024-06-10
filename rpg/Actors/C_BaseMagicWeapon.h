@@ -34,10 +34,10 @@ public :
 
 	
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	 TSubclassOf< class AC_magicSpell > magicSpell;
 	 UPROPERTY(EditAnywhere)
-	 bool CombatEnabled;
+	 bool CombatEnabled=true;
 
 	 void ToggleCombat(bool bEnableCombate);
 

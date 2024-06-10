@@ -11,6 +11,7 @@
 #include <Kismet/GameplayStatics.h>
 #include "Engine/EngineTypes.h"
 #include "rpg/Component/C_StatsComponent.h"
+#include "rpg/AI/C_MasterAI.h"
 // Sets default values
 AC_magicSpell::AC_magicSpell()
 {
@@ -38,6 +39,7 @@ AC_magicSpell::AC_magicSpell()
 void AC_magicSpell::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	Sphere->OnComponentHit.AddDynamic(this,&AC_magicSpell::OnHit);
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_magicSpell::AttackDealy, 2.0f, false);
@@ -65,11 +67,16 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 	auto spellCaster = GetOwner();
 	if (spellCaster == nullptr) return;
 	
-	ASoulsLikeCharacter* Character = Cast<ASoulsLikeCharacter>(OtherActor);
-	if (!OtherActor) {
+
+
+	auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor());
+	auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor());
+	if (!Hit.GetActor()) {
+		//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
 		return;
 	}
-	if (Character->CanRecieveDamage()) {
+	if (Character) {
+		UE_LOG(LogTemp, Warning, TEXT("hit %s"), *Character->GetName());
 		
 		UGameplayStatics::ApplyPointDamage(OtherActor,
 			50.0f,
@@ -87,10 +94,27 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 
 			this->Destroy();
 		}
-
-
-
 	}
+	else if (AICharacter) {
+		UE_LOG(LogTemp, Warning, TEXT("hitai %s"), *Hit.GetActor()->GetName());
+	
+		UGameplayStatics::ApplyPointDamage(Hit.GetActor(),
+			50.0f,
+			GetOwner()->GetActorForwardVector(),
+			Hit,
+			GetInstigatorController(),
+			GetOwner(),
+			nullptr
+		); if (IsValid(this)) {
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+				hitParticales,
+				GetActorLocation()
+			);
+
+			this->Destroy();
+		}
+	}
+
 }
 
 void AC_magicSpell::AttackDealy()
@@ -99,5 +123,3 @@ void AC_magicSpell::AttackDealy()
 		this->Destroy();
 	}
 }
-
-

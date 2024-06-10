@@ -6,6 +6,8 @@
 #include "C_magicSpell.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "rpg/SoulsLikeCharacter.h"
+#include "rpg/AI/C_MasterAI.h"
+
 AC_BaseMagicWeapon::AC_BaseMagicWeapon()
 {
 
@@ -30,6 +32,7 @@ void AC_BaseMagicWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	Particales->SetVisibility(false);
+
 }
 
 void AC_BaseMagicWeapon::ToggleCombat(bool bEnableCombate)
@@ -47,7 +50,7 @@ void AC_BaseMagicWeapon::fire()
 {
 
 	
-	ASoulsLikeCharacter* MainCharacter = Cast<ASoulsLikeCharacter>(GetOwner());
+	auto* MainCharacter = Cast<AC_MasterAI>(GetOwner());
 	FVector  ProjectileSpawnLocation = ProjectileSpawn->GetComponentLocation();
 	FRotator  rotator = MainCharacter->GetActorRotation();
 	auto spell = GetWorld()->SpawnActor<AC_magicSpell>(magicSpell, ProjectileSpawnLocation, rotator);

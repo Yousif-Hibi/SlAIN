@@ -92,16 +92,18 @@ void AC_BaseWeapon::OnAIEquipped()
 
 		
 		AActor* actor = Cast<AActor>(Character);
+		
+		
 
+			if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
 
-		if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
-			
-			//resone for crash 
-			anim->UpdateCombatType(CombatType);
-			Character->combatType = CombatType;
-			CollisionCombonent->SetCollisonMesh(GetItemMesh());
-			CollisionCombonent->AddActorsToIgnore(GetOwner());
-		}
+				//resone for crash 
+				anim->UpdateCombatType(CombatType);
+				Character->combatType = CombatType;
+				CollisionCombonent->SetCollisonMesh(GetItemMesh());
+				CollisionCombonent->AddActorsToIgnore(GetOwner());
+			}
+		
 	}
 }
 

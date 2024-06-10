@@ -26,13 +26,14 @@ void AC_LeaderPose::OnEquip()
 {
 	
 	ADummyCharacter* CharacterOwner = Cast<ADummyCharacter>(GetOwner());
-	CharacterOwner->StatsComponent-> ModifyCurrentStatValue(Estat::Armor, 5.0f, false);
+	CharacterOwner->StatsComponents-> ModifyCurrentStatValue(Estat::Armor, 5.0f, false);
 	
 }
 
 void AC_LeaderPose::OnUnequipped()
 {
 	
+
 	ADummyCharacter* CharacterOwner = Cast<ADummyCharacter>(GetOwner());
-	CharacterOwner->StatsComponent->ModifyCurrentStatValue(Estat::Armor, -5.0f, false);
+	CharacterOwner->StatsComponents->ModifyCurrentStatValue(Estat::Armor, -5.0f, false);
 }

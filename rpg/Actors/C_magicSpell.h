@@ -35,7 +35,8 @@ public:
 	 UParticleSystem* hitParticales;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UProjectileMovementComponent* ProjectileMovement;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	int32 Damege = 20;
 	
 
 	UFUNCTION()
