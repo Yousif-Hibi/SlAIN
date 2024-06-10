@@ -31,6 +31,12 @@ public:
 	virtual FRotator  GetDesiredRotation() { return FRotator(); }
 	virtual bool CanRecieveDamage() { return false; }
 	virtual  void SetCanMove(bool isCanMove) { }
+
+
+
+	virtual bool ReserveAttakTokken(int32 Amount) { return false; }
+	virtual void ReturnAttackTokken(int32 Amount) { }
+
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
-	  int AIAttack();
+	int AIAttack();
 };

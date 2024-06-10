@@ -24,5 +24,5 @@ class  IInteractive_CI
 public:
 	
 	virtual  void Intracts(AActor* Caller){}
-
+	virtual  void TalkToNPC() {}
 };
