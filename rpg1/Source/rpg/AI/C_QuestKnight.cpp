@@ -124,27 +124,30 @@ void AC_QuestKnight::WriteStringToFile(FString FilePath, FString String, bool& b
 
 
 
-void AC_QuestKnight::RunPythonScript(FString ScriptPath)
+FString AC_QuestKnight::RunPythonScript(FString ScriptPath, FString TextToSend)
 {
 	FString PythonExecutable = TEXT("python"); // Path to the Python interpreter executable
-	FString Arguments = FString::Printf(TEXT("\"%s\""), *ScriptPath); // Wrap the script path in double quotes
+	FString Arguments = FString::Printf(TEXT("\"%s\" \"%s\""), *ScriptPath, *TextToSend); // Include text as an argument
 
 	FString Output;
 	int32 ExitCode = -1; // Initialize the exit code variable
 
-	bool bSuccess = FPlatformProcess::ExecProcess(*PythonExecutable, *Arguments, &ExitCode, &Output,nullptr);
+	bool bSuccess = FPlatformProcess::ExecProcess(*PythonExecutable, *Arguments, &ExitCode, &Output, nullptr);
 
 	if (bSuccess)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Python script executed successfully"));
 		UE_LOG(LogTemp, Warning, TEXT("Python script output: %s"), *Output);
 		UE_LOG(LogTemp, Warning, TEXT("Python script exit code: %d"), ExitCode);
+		return Output;
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to execute Python script"));
 	}
+	return TextToSend;
 }
+
 
 
 
@@ -200,11 +203,13 @@ void AC_QuestKnight::fileToRead()
 	UE_LOG(LogTemp, Warning, TEXT("Attempting to read file at path: %s"), *FullFilePath);
 
 	FString FileContent = ReadStringFromFile(FullFilePath, bSuccess, InfoMessage);
-
+	FString PythonScriptPath = FPaths::ProjectContentDir() + TEXT("python/main.py");
+	FString AiAgustedContent =RunPythonScript(PythonScriptPath, FileContent);
+	UE_LOG(LogTemp, Warning, TEXT("Successfully read linessssssssss: %s"), *AiAgustedContent);
 	if (bSuccess)
 	{
 		TArray<FString> Lines;
-		FileContent.ParseIntoArrayLines(Lines);
+		AiAgustedContent.ParseIntoArrayLines(Lines);
 		if (Lines.Num() > 0)
 		{
 			for (const FString& Line : Lines)
@@ -230,7 +235,6 @@ void AC_QuestKnight::BeginPlay()
 	Super::BeginPlay();
 	
 	fileToRead();
-	FString PythonScriptPath = FPaths::ProjectContentDir() + TEXT("python/main.py");
-	RunPythonScript(PythonScriptPath);
+	
 
 }

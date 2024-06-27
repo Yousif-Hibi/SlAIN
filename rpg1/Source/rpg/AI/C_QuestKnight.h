@@ -33,7 +33,7 @@ public:
 	static void WriteStringToFile(FString FilePath,FString  String, bool& bOutSuccess, FString& OutInfoMassage);
 
 	UFUNCTION(BlueprintCallable)
-	void RunPythonScript(FString ScriptPath);
+	FString RunPythonScript(FString ScriptPath, FString TextToSend);
 
 	UFUNCTION(BlueprintCallable)
     void CreateQuestFile();
