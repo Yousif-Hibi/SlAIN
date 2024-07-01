@@ -15,6 +15,8 @@
 #include "Interfaces/IHttpResponse.h"
 #include "Json.h"
 #include "JsonUtilities.h"
+#include "Misc/ConfigCacheIni.h"
+
 
 AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
 {
@@ -199,12 +201,17 @@ void AC_QuestKnight::SynthesizeSpeech(const FString& TextToSpeak)
 
 void AC_QuestKnight::SendPostRequestToAPI(FString FileContent)
 {
-    FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 9 short Dialogue sentences, no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
+    FString APIKey;
+    if (GConfig->GetString(TEXT("APIKeys"), TEXT("GeminiaiKey"), APIKey, FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("Secrets.ini"))))
+    {
+        FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 9 short Dialogue sentences, no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
 
 
-    FString ApiEndpoint = TEXT("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyC3PW0PizEuf8Z_LciK0NVlcm9DHj9VVSY");
-
-    SendPostRequest(ApiEndpoint, JsonPayload);
+        FString ApiEndpoint = TEXT("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=");
+        FString FullEndpoint = ApiEndpoint + APIKey;
+        SendPostRequest(FullEndpoint, JsonPayload);
+    }
+   
 }
 
 void AC_QuestKnight::SendPostRequest(FString ApiEndpoint, FString JsonContent)
