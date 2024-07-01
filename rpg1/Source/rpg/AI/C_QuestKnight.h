@@ -4,11 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "C_MasterAI.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 #include "C_QuestKnight.generated.h"
 
 /**
- * 
+ *
  */
+
+
+
 UCLASS()
 class RPG_API AC_QuestKnight : public AC_MasterAI, public IInteractive_CI
 {
@@ -27,22 +32,29 @@ public:
 	void ShowWidget(FString str);
 
 	UFUNCTION(BlueprintCallable)
-	static FString ReadStringFromFile(FString FilePath,bool& bOutSuccess,FString& OutInfoMassage);
+	static FString ReadStringFromFile(FString FilePath, bool& bOutSuccess, FString& OutInfoMassage);
 
 	UFUNCTION(BlueprintCallable)
-	static void WriteStringToFile(FString FilePath,FString  String, bool& bOutSuccess, FString& OutInfoMassage);
+	static void WriteStringToFile(FString FilePath, FString  String, bool& bOutSuccess, FString& OutInfoMassage);
 
 	UFUNCTION(BlueprintCallable)
-	FString RunPythonScript(FString ScriptPath, FString TextToSend);
+	void ProcessReceivedText(const FString& ReceivedText);
 
+	void SendPostRequestToAPI(FString FileContent);
 	UFUNCTION(BlueprintCallable)
-    void CreateQuestFile();
+	void CreateQuestFile();
 	UPROPERTY(EditAnywhere)
-	int32 PartNumber= 1;
+	int32 PartNumber = 1;
 	UFUNCTION()
 	void Teleport(FVector Location);
 	UFUNCTION()
 	void fileToRead();
+
+
+	void SendPostRequest(FString ApiEndpoint, FString JsonContent);
+	void OnResponseReceived( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	UFUNCTION()
+	void SynthesizeSpeech(const FString& TextToSpeak);
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> widget;
@@ -52,7 +64,7 @@ private:
 
 	FTimerHandle WidgetTimerHandle;
 	UPROPERTY()
-	bool bAllowedTOTelleport=false;
+	bool bAllowedTOTelleport = false;
 
 	TArray<FString> Dialog;
 	int32 DialogIndex = -1;

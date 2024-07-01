@@ -1,0 +1,17 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "EditorPythonScriptingLibrary.h"
+#include "pythonAI.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class RPG_API UpythonAI : public UEditorPythonScriptingLibrary
+{
+	GENERATED_BODY()
+	
+};

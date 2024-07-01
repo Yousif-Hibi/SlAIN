@@ -17,7 +17,10 @@ public class rpg : ModuleRules
             "AIModule",
             "GameplayTasks",
             "NavigationSystem",
-           
+           "TextToSpeech",
+           "HTTP", 
+            "Json"
+
         });
 
  
