@@ -6,6 +6,8 @@
 #include "HAL/PlatformFileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+
+#include "rpg/HTTP/C_HTTPGoogleApi.h"
 #include <Blueprint/AIBlueprintHelperLibrary.h>
 #include "HAL/PlatformProcess.h"
 #include "TextToSpeech.h"
@@ -16,8 +18,6 @@
 #include "Json.h"
 #include "JsonUtilities.h"
 #include "Misc/ConfigCacheIni.h"
-
-
 AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
 {
     static ConstructorHelpers::FClassFinder<UUserWidget> QuestText(TEXT("/Game/Static/quests/WB_QuestText.WB_QuestText_C"));
@@ -30,13 +30,13 @@ AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
 void AC_QuestKnight::TalkToNPC()
 {
     IInteractive_CI::TalkToNPC();
-
+    UC_HTTPGoogleApi *callApi= NewObject<UC_HTTPGoogleApi>(this);;
     DialogIndex++;
     if (Dialog.Num() > DialogIndex)
     {
         UE_LOG(LogTemp, Warning, TEXT("%s"), *Dialog[DialogIndex]);
         ShowWidget(Dialog[DialogIndex]);
-        SynthesizeSpeech(Dialog[DialogIndex]);
+       callApi->SynthesizeSpeech(Dialog[DialogIndex]);
     }
     else
     {
@@ -177,55 +177,13 @@ void AC_QuestKnight::fileToRead()
 
     if (bSuccess)
     {
-        SendPostRequestToAPI(FileContent);
+       
+        SendPostQestRequest(FileContent);
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("%s"), *InfoMessage);
     }
-}
-
-void AC_QuestKnight::SynthesizeSpeech(const FString& TextToSpeak)
-{
-    UTextToSpeechEngineSubsystem* TTSInstance = NewObject<UTextToSpeechEngineSubsystem>(this);
-
-    // Add a default channel named "chanal"
-    FName ChannelName = TEXT("chanal");
-    TTSInstance->AddDefaultChannel(ChannelName);
-    TTSInstance->ActivateChannel(ChannelName);
-
-    TTSInstance->SetRateOnChannel(ChannelName, 0.4f);
-    TTSInstance->SetVolumeOnChannel(ChannelName, 0.8f);
-    TTSInstance->SpeakOnChannel(ChannelName, TextToSpeak);
-}
-
-void AC_QuestKnight::SendPostRequestToAPI(FString FileContent)
-{
-    FString APIKey;
-    if (GConfig->GetString(TEXT("APIKeys"), TEXT("GeminiaiKey"), APIKey, FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("Secrets.ini"))))
-    {
-        FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 9 short Dialogue sentences, no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
-
-
-        FString ApiEndpoint = TEXT("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=");
-        FString FullEndpoint = ApiEndpoint + APIKey;
-        SendPostRequest(FullEndpoint, JsonPayload);
-    }
-   
-}
-
-void AC_QuestKnight::SendPostRequest(FString ApiEndpoint, FString JsonContent)
-{
-    FHttpModule* Http = &FHttpModule::Get();
-    if (!Http) { return; }
-
-    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
-    Request->OnProcessRequestComplete().BindUObject(this, &AC_QuestKnight::OnResponseReceived);
-    Request->SetURL(ApiEndpoint);
-    Request->SetVerb("POST");
-    Request->SetHeader("Content-Type", "application/json");
-    Request->SetContentAsString(JsonContent);
-    Request->ProcessRequest();
 }
 
 void AC_QuestKnight::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -258,7 +216,7 @@ void AC_QuestKnight::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
                     UE_LOG(LogTemp, Log, TEXT("Main Text: %s"), *MainText);
 
                     // Process the received text
-                    ProcessReceivedText(MainText);
+                    ProcessReceivedText(MainText) ;
                 }
             }
         }
@@ -272,6 +230,65 @@ void AC_QuestKnight::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
         UE_LOG(LogTemp, Error, TEXT("Request failed"));
     }
 }
+
+
+void AC_QuestKnight::SendPostRequest(FString ApiEndpoint, FString JsonContent)
+{
+    FHttpModule* Http = &FHttpModule::Get();
+    if (!Http) { return; }
+
+    TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+    Request->OnProcessRequestComplete().BindUObject(this, &AC_QuestKnight::OnResponseReceived);
+    Request->SetURL(ApiEndpoint);
+    Request->SetVerb("POST");
+    Request->SetHeader("Content-Type", "application/json");
+    Request->SetContentAsString(JsonContent);
+    Request->ProcessRequest();
+}
+
+
+
+
+void AC_QuestKnight::SendPostQestRequest(FString FileContent)
+{
+    FString APIKey;
+    FString ConfigFilePath = FPaths::Combine(FPaths::ProjectConfigDir(), TEXT("Secrets.ini"));
+    ConfigFilePath = FConfigCacheIni::NormalizeConfigIniPath(ConfigFilePath);
+
+    if (GConfig->GetString(TEXT("APIKeys"), TEXT("GeminiaiKey"), APIKey, ConfigFilePath))
+    {
+        FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 9 short Dialogue sentences, no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
+
+
+        FString ApiEndpoint = TEXT("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=");
+        FString FullEndpoint = ApiEndpoint + APIKey;
+        SendPostRequest(FullEndpoint, JsonPayload);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to retrieve GeminiaiKey from Secrets.ini"));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void AC_QuestKnight::ProcessReceivedText(const FString& ReceivedText)
 {

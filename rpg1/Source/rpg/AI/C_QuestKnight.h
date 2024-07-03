@@ -37,10 +37,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static void WriteStringToFile(FString FilePath, FString  String, bool& bOutSuccess, FString& OutInfoMassage);
 
+	
+
 	UFUNCTION(BlueprintCallable)
 	void ProcessReceivedText(const FString& ReceivedText);
-
-	void SendPostRequestToAPI(FString FileContent);
 	UFUNCTION(BlueprintCallable)
 	void CreateQuestFile();
 	UPROPERTY(EditAnywhere)
@@ -49,12 +49,13 @@ public:
 	void Teleport(FVector Location);
 	UFUNCTION()
 	void fileToRead();
-
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	void SendPostRequest(FString ApiEndpoint, FString JsonContent);
-	void OnResponseReceived( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	UFUNCTION()
-	void SynthesizeSpeech(const FString& TextToSpeak);
+	
+	void SendPostQestRequest(FString FileContent);
+
+	
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> widget;
