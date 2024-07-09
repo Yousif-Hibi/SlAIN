@@ -232,6 +232,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	APatrolPath* PatrolPath;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UC_CollisionCombonent * CollisionCombonent;
 

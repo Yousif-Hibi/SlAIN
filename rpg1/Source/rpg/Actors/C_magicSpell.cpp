@@ -42,7 +42,7 @@ void AC_magicSpell::BeginPlay()
 	
 	Sphere->OnComponentHit.AddDynamic(this,&AC_magicSpell::OnHit);
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_magicSpell::AttackDealy, 2.0f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_magicSpell::AttackDealy, 3.0f, false);
 
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
@@ -68,9 +68,14 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 	if (spellCaster == nullptr) return;
 	
 
-
+	auto* AIspellCaster = Cast<AC_MasterAI>(spellCaster);
 	auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor());
 	auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor());
+
+	//if (AICharacter && AIspellCaster) {
+	//	UE_LOG(LogTemp, Warning, TEXT("hit"));
+	//	return; }
+
 	if (!Hit.GetActor()) {
 		//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
 		return;

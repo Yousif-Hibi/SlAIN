@@ -9,10 +9,25 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "Components/CapsuleComponent.h"
-void AC_mageAI::Tick(float DeltaTime)
+#include "Particles/ParticleSystemComponent.h"
+#include "PatrolPath.h" 
+#include "EngineUtils.h" 
+
+
+AC_mageAI::AC_mageAI()
 {
+	// Set this character to call Tick() every frame.
+	PrimaryActorTick.bCanEverTick = true;
+
+	// Initialize PatrolPath pointer
+	PatrolPath = nullptr;
+	
+}
+void AC_mageAI::Tick(float DeltaTime)
+{  
 	ChangeHealth();
 	Track();
+		
 }
 
 void AC_mageAI::Teleport(FVector Location)
@@ -29,11 +44,33 @@ void AC_mageAI::Teleport(FVector Location)
 	FVector ActorLocation = GetActorLocation();
 	ActorLocation.Z += 10.f;
 	SetActorLocation(Location);
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+	UParticleSystemComponent* SpawnedEmitter = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
 		TeleportParticalImpact,
 		ActorLocation
 	);
 
+	if (SpawnedEmitter)
+	{
+		// Set the particle system component to automatically destroy itself when finished
+		SpawnedEmitter->bAutoDestroy = true;
+
+		// Optionally, you can set the duration if the particle system template supports it
+		SpawnedEmitter->SetFloatParameter(TEXT("EmitterDuration"), 2.0f); // Set duration to 2 seconds
+
+		// Schedule a timer to destroy the emitter after 2 seconds
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			[SpawnedEmitter]() {
+				SpawnedEmitter->DestroyComponent();
+			},
+			2.0f, // 2 seconds delay
+			false // One-shot timer
+		);
+	}
+
+	
+	
+	
 	UAIBlueprintHelperLibrary::CreateMoveToProxyObject(this,
 		 this,
 		 Location,
@@ -50,4 +87,27 @@ void AC_mageAI::EndTeleport()
 	GetMesh()->SetVisibility(true, true);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	 
+}
+void AC_mageAI::BeginPlay()
+{
+	AC_MasterAI::BeginPlay();
+
+	// Find the patrol path actor in the world
+	for (TActorIterator<APatrolPath> It(GetWorld()); It; ++It)
+	{
+		PatrolPath = *It;
+		break; // Assuming there's only one patrol path in the world, break after finding it
+	}
+}
+
+// Get the patrol path
+APatrolPath* AC_mageAI::GetPatrolPath() const
+{
+	return PatrolPath;
+}
+
+// Set the patrol path
+void AC_mageAI::SetPatrolPath(APatrolPath* NewPatrolPath)
+{
+	PatrolPath = NewPatrolPath;
 }

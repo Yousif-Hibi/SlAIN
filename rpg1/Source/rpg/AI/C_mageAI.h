@@ -14,11 +14,15 @@ class RPG_API AC_mageAI : public AC_MasterAI
 {
 	GENERATED_BODY()
 public:
+	// Sets default values for this character's properties
+	AC_mageAI(); 
+
+public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
+	   
 
 
 
@@ -30,13 +34,19 @@ public:
 
 	UFUNCTION()
 	void EndTeleport();
+	void BeginPlay();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UParticleSystem* TeleportParticalTrial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	 UParticleSystem* TeleportParticalImpact;
-private:
-	
+	 APatrolPath* GetPatrolPath() const;
+
+	 // Set the patrol path
+	 void SetPatrolPath(APatrolPath* NewPatrolPath);
+
+
+	 FTimerHandle TimerHandle;
 
 
 };

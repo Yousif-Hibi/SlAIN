@@ -8,24 +8,33 @@ public class rpg : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", 
-            "CoreUObject", 
+		PublicDependencyModuleNames.AddRange(new string[] { "Core",
+            "CoreUObject",
             "Engine",
-            "InputCore", 
-            "GameplayTags", 
+            "InputCore",
+            "GameplayTags",
             "UMG",
             "AIModule",
             "GameplayTasks",
             "NavigationSystem",
-           "TextToSpeech",
-           "HTTP", 
+            "TextToSpeech",
+            "HTTP",
             "Json"
 
         });
 
- 
 
-      
+        PrivateDependencyModuleNames.AddRange(new string[] { });
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[] {
+                "UnrealEd",
+                "EditorScriptingUtilities",
+                "StaticMeshEditor"
+            });
+        }
+
 
 
 

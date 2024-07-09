@@ -147,7 +147,6 @@ bool AC_MasterAI::CanPreFormAttack()
 			
 			TArray<TEnumAsByte< EChartacterState>> temp = {  EChartacterState::Dead, EChartacterState::Disabled };
 			if (!manger->IsCurrentStateEqualToAny(temp)) {
-				UE_LOG(LogTemp, Warning, TEXT("Here 4"));
 					return true;
 			}
 			else if (GetMesh()->GetAnimInstance()->Montage_GetIsStopped(HitReaction)) {
@@ -698,7 +697,7 @@ void AC_MasterAI::BeginPlay()
 {
 
 	Super::BeginPlay();
-
+	UE_LOG(LogTemp, Warning, TEXT("potrole path"));
 	StatsComponent->InitialState();
 	if (MainWidget) {
 
