@@ -32,10 +32,14 @@ public :
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UParticleSystem* StartParticales;
 
-	
+	UPROPERTY()
+	float  magicDameges ;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	 TSubclassOf< class AC_magicSpell > magicSpell;
+	 UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	  AC_magicSpell *  Spell;
+	
 	 UPROPERTY(EditAnywhere)
 	 bool CombatEnabled=true;
 
@@ -43,9 +47,8 @@ public :
 
 	 UFUNCTION()
 	 void fire();
-
-
-
+	 UFUNCTION()
+	 void MagicDamegeSet(float temp);
 
 
 

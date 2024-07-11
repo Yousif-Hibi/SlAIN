@@ -32,8 +32,11 @@ void AC_BaseMagicWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	Particales->SetVisibility(false);
-
+	magicDameges = 20.f;
+	
 }
+ 
+
 
 void AC_BaseMagicWeapon::ToggleCombat(bool bEnableCombate)
 {
@@ -48,13 +51,22 @@ void AC_BaseMagicWeapon::ToggleCombat(bool bEnableCombate)
 
 void AC_BaseMagicWeapon::fire()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("asdasdasdasda %f"), magicDameges);
 	
 	auto* MainCharacter = Cast<AC_MasterAI>(GetOwner());
 	FVector  ProjectileSpawnLocation = ProjectileSpawn->GetComponentLocation();
 	FRotator  rotator = MainCharacter->GetActorRotation();
-	auto spell = GetWorld()->SpawnActor<AC_magicSpell>(magicSpell, ProjectileSpawnLocation, rotator);
-	spell->SetOwner(MainCharacter);
-	
+	Spell = GetWorld()->SpawnActor<AC_magicSpell>(magicSpell, ProjectileSpawnLocation, rotator);
+	Spell->SetOwner(MainCharacter);
+	Spell->SetSpellDameges(magicDameges);
 
+}
+
+void AC_BaseMagicWeapon::MagicDamegeSet(float temp)
+{
+	
+	
+		magicDameges = temp;	
+		UE_LOG(LogTemp, Warning, TEXT("asdasdasdasda %f"), magicDameges);
+	
 }

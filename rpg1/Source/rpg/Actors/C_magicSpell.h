@@ -36,8 +36,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UProjectileMovementComponent* ProjectileMovement;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int32 Damege = 20;
-	
+	int32 intDamege = 20;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	float  Dameges = 20.f;
+
+	UFUNCTION()
+	void SetSpellDameges(float spellDmg);
+
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * hitComp,AActor* OtherActor, UPrimitiveComponent* OtherComp,FVector NormalImpulse,const FHitResult& Hit);

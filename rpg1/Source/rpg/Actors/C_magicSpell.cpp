@@ -61,6 +61,11 @@ void AC_magicSpell::Tick(float DeltaTime)
 }
 
 
+void AC_magicSpell::SetSpellDameges(float spellDmg)
+{
+	Dameges = spellDmg;
+}
+
 void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	
@@ -84,7 +89,7 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 		UE_LOG(LogTemp, Warning, TEXT("hit %s"), *Character->GetName());
 		
 		UGameplayStatics::ApplyPointDamage(OtherActor,
-			50.0f,
+			Dameges,
 			spellCaster->GetActorForwardVector(),
 			Hit,
 			spellCaster->GetInstigatorController(),
@@ -104,7 +109,7 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 		UE_LOG(LogTemp, Warning, TEXT("hitai %s"), *Hit.GetActor()->GetName());
 	
 		UGameplayStatics::ApplyPointDamage(Hit.GetActor(),
-			50.0f,
+			Dameges,
 			GetOwner()->GetActorForwardVector(),
 			Hit,
 			GetInstigatorController(),

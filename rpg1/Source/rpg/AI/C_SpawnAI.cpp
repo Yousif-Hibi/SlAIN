@@ -3,6 +3,12 @@
 #include "C_mageAI.h"
 #include "PatrolPath.h"
 #include "Kismet/GameplayStatics.h"
+#include "rpg/Component/C_StatsComponent.h"
+#include "rpg/Component/C_CombatComponent.h"
+#include "rpg/Actors/C_magicSpell.h"
+#include "rpg/Actors/C_BaseMagicWeapon.h"
+#include "rpg/Actors/C_BaseWeapon.h"
+#include "rpg/AI/C_MasterAI.h"
 // Sets default values
 AC_SpawnAI::AC_SpawnAI()
 {
@@ -27,6 +33,18 @@ void AC_SpawnAI::BeginPlay()
 			{
 				// Assign the patrol path
 				SpawnedMage->SetPatrolPath(ClosestPath);
+				SpawnedMage->StatsComponent->SetMaxStateValue(Estat::Health,200);
+				SpawnedMage->StatsComponent->SetBaseStateValue(Estat::Health, 200);
+				SpawnedMage->StatsComponent->ModifyCurrentStatValue(Estat::Health, 200, false);
+				auto* weapon = Cast<AC_BaseMagicWeapon>( SpawnedMage->CombatComponent->GetMainWeapon());
+				if (weapon)
+				{
+					weapon->MagicDamegeSet( 90.f);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Weapon  is null"));
+				}
 				UE_LOG(LogTemp, Warning, TEXT("Mage %d spawned and closest patrol path assigned."), i);
 			}
 			else
