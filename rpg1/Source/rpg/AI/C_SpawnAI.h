@@ -23,10 +23,19 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+
+	UFUNCTION()
+	void spawnMage(int32 numToSpawn);
+	UFUNCTION()
+	void spawnKnight(int32 numToSpawn);
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TSubclassOf<AC_mageAI> MageClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	TSubclassOf<AC_HumanoidEnemy> KnightClass;
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")

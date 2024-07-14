@@ -21,7 +21,8 @@ class RPG_API AC_HumanoidEnemy : public AC_MasterAI
 		virtual void Tick(float DeltaTime) override;
 
 
-
+		UFUNCTION()
+		void SetPatrolPath(APatrolPath* NewPatrolPath);
 
 		
 		UFUNCTION(BlueprintImplementableEvent)

@@ -38,7 +38,7 @@ AC_BaseWeapon::AC_BaseWeapon() {
 void AC_BaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-
+	Damege = 20;
 }
 
 void AC_BaseWeapon::OnEquipped()
@@ -116,9 +116,9 @@ void AC_BaseWeapon::OnHit(FHitResult hit)
 		return;
 	}
 	if (Character) {
-		UE_LOG(LogTemp, Warning, TEXT("hit %s"), *hit.GetActor()->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("hit %s   , %d"), *hit.GetActor()->GetName(),Damege);
 		UGameplayStatics::ApplyPointDamage(hit.GetActor(),
-			GetDamage(false),
+			Damege,
 			GetOwner()->GetActorForwardVector(),
 			hit,
 			GetInstigatorController(),
@@ -127,9 +127,12 @@ void AC_BaseWeapon::OnHit(FHitResult hit)
 		);
 	}
 	else if(AICharacter){
+		float value = 1;
+		value = Damege * value;
+		
 		UE_LOG(LogTemp, Warning, TEXT("hitai %s"), *hit.GetActor()->GetName());
 		UGameplayStatics::ApplyPointDamage(hit.GetActor(),
-			GetDamage(true),
+			value,
 			GetOwner()->GetActorForwardVector(),
 			hit,
 			GetInstigatorController(),
@@ -137,6 +140,12 @@ void AC_BaseWeapon::OnHit(FHitResult hit)
 			nullptr
 		);
 	}
+}
+
+void AC_BaseWeapon::setDmg(int32 dmg)
+{
+	Damege = dmg;
+	UE_LOG(LogTemp,Warning,TEXT("damege dasdasdasdasdasdasdas %d"),Damege);
 }
 
 void AC_BaseWeapon::SimulateWeaponPhysics()
@@ -193,22 +202,18 @@ int32 AC_BaseWeapon::GetDamage(bool isAI)
 	if (!isAI) {
 	
 				return Damege;
-
+				UE_LOG(LogTemp, Warning, TEXT("damege dasdasdasdasdasdasdas %d"), Damege);
 			
 		
 	}
 	else {
 		if (IsValid(manger)) {
-			UE_LOG(LogTemp, Warning, TEXT("hit %s"), *manger->GetOwner()->GetName());
-			if (manger->GetCurrentAction() != EChartacterAction::NoAction) {
-				value = *ActionDamageMultiplyer.Find(manger->GetCurrentAction());
-
-				FMath::Clamp(value, 1, value);
+			UE_LOG(LogTemp, Warning, TEXT("damege dasdasdasdasdasdasdas ddddddddddddddddddddd %d"), Damege);
 
 				value = Damege * value;
 				return Damege;
 
-			}
+			
 		}
 	}
 

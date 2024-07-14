@@ -32,6 +32,8 @@ public:
 	void OnAIEquipped() override;
 	UFUNCTION(BlueprintCallable) 
 	void OnHit(FHitResult hit);
+	UFUNCTION(BlueprintCallable)
+	void setDmg(int32 dmg);
 
 	UFUNCTION(BlueprintCallable)
 	void SimulateWeaponPhysics();
@@ -59,9 +61,10 @@ public:
 	bool bIsAttachedToHand=false;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Initialization")
 	bool bCombat = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	int32 Damege=20;
-	
+	UPROPERTY()
+	int32 Damege;
+	UPROPERTY()
+	int32 weapDamege;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* EquipWeapenMontage;
 

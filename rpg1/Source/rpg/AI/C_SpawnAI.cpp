@@ -1,6 +1,7 @@
 #include "C_SpawnAI.h"
 #include "Engine/World.h"
 #include "C_mageAI.h"
+#include "C_HumanoidEnemy.h"
 #include "PatrolPath.h"
 #include "Kismet/GameplayStatics.h"
 #include "rpg/Component/C_StatsComponent.h"
@@ -9,6 +10,7 @@
 #include "rpg/Actors/C_BaseMagicWeapon.h"
 #include "rpg/Actors/C_BaseWeapon.h"
 #include "rpg/AI/C_MasterAI.h"
+#include "rpg/Enums/E_CharacterAction.h"
 // Sets default values
 AC_SpawnAI::AC_SpawnAI()
 {
@@ -23,7 +25,21 @@ AC_SpawnAI::AC_SpawnAI()
 void AC_SpawnAI::BeginPlay()
 {
 	Super::BeginPlay();
-	for (int32 i = 0; i < NumMagesToSpawn; ++i)
+	spawnMage(1);
+	spawnKnight(1);
+
+}
+
+// Called every frame
+void AC_SpawnAI::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+void AC_SpawnAI::spawnMage(int32 numToSpawn)
+{
+	for (int32 i = 0; i < numToSpawn; ++i)
 	{
 		AC_mageAI* SpawnedMage = GetWorld()->SpawnActor<AC_mageAI>(MageClass, GetActorLocation(), FRotator::ZeroRotator);
 		if (SpawnedMage)
@@ -33,13 +49,13 @@ void AC_SpawnAI::BeginPlay()
 			{
 				// Assign the patrol path
 				SpawnedMage->SetPatrolPath(ClosestPath);
-				SpawnedMage->StatsComponent->SetMaxStateValue(Estat::Health,200);
+				SpawnedMage->StatsComponent->SetMaxStateValue(Estat::Health, 200);
 				SpawnedMage->StatsComponent->SetBaseStateValue(Estat::Health, 200);
 				SpawnedMage->StatsComponent->ModifyCurrentStatValue(Estat::Health, 200, false);
-				auto* weapon = Cast<AC_BaseMagicWeapon>( SpawnedMage->CombatComponent->GetMainWeapon());
+				auto* weapon = Cast<AC_BaseMagicWeapon>(SpawnedMage->CombatComponent->GetMainWeapon());
 				if (weapon)
 				{
-					weapon->MagicDamegeSet( 90.f);
+					weapon->MagicDamegeSet(90.f);
 				}
 				else
 				{
@@ -58,13 +74,38 @@ void AC_SpawnAI::BeginPlay()
 		}
 	}
 
-
 }
 
-// Called every frame
-void AC_SpawnAI::Tick(float DeltaTime)
+void AC_SpawnAI::spawnKnight(int32 numToSpawn)
 {
-	Super::Tick(DeltaTime);
+
+	for (int32 i = 0; i < numToSpawn; ++i)
+	{
+		AC_HumanoidEnemy* SpawnedKnight = GetWorld()->SpawnActor<AC_HumanoidEnemy>(KnightClass, GetActorLocation(), FRotator::ZeroRotator);
+		if (SpawnedKnight)
+		{
+			APatrolPath* ClosestPath = FindClosestPatrolPath();
+			if (ClosestPath)
+			{
+				// Assign the patrol path
+				SpawnedKnight->SetPatrolPath(ClosestPath);
+				SpawnedKnight->StatsComponent->SetMaxStateValue(Estat::Health, 200);
+				SpawnedKnight->StatsComponent->SetBaseStateValue(Estat::Health, 200);
+				SpawnedKnight->StatsComponent->ModifyCurrentStatValue(Estat::Health, 200, false);
+				SpawnedKnight->CombatComponent->GetMainWeapon()->setDmg(50);
+				
+				UE_LOG(LogTemp, Warning, TEXT("Mage %d spawned and closest patrol path assigned."), i);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("No patrol path found for Mage %d."), i);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn Mage %d."), i);
+		}
+	}
 
 }
 

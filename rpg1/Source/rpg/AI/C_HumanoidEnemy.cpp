@@ -8,3 +8,7 @@ void AC_HumanoidEnemy::Tick(float DeltaTime)
 	ChangeHealth();
 	Track();
 }
+void AC_HumanoidEnemy::SetPatrolPath(APatrolPath* NewPatrolPath)
+{
+	PatrolPath = NewPatrolPath;
+}
