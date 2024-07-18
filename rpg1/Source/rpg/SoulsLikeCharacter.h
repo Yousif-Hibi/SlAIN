@@ -101,7 +101,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LightAttack();
-	
+	UFUNCTION(BlueprintCallable)
+	void Pause();
 	UFUNCTION(BlueprintCallable)
 	void Dodge();
 	UFUNCTION(BlueprintCallable)
@@ -208,7 +209,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	bool bHitFront = true;
 
-
+	
 
 	UPROPERTY(EditAnywhere)
 	bool bHeavyAttack;
@@ -230,6 +231,10 @@ private:
 
 
 public:
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UUserWidget> pauseWidgetClass;
+
+	UUserWidget* WidgetInstance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bisGettingTargeted = false;
 	UPROPERTY(EditAnywhere)

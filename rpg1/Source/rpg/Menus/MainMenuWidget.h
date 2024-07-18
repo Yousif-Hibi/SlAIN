@@ -22,6 +22,9 @@ private:
     UPROPERTY(meta = (BindWidget))
     class UButton* PlayButton;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+    TSubclassOf<UUserWidget> WidgetClass;
+
     UPROPERTY(meta = (BindWidget))
     class UButton* SettingsButton;
 

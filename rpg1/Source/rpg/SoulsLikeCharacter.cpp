@@ -118,8 +118,8 @@ void ASoulsLikeCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("LightAttack", IE_Pressed, this, &ASoulsLikeCharacter::ChargedAttack);
 	PlayerInputComponent->BindAction("LightAttack", IE_Released, this, &ASoulsLikeCharacter::LightAttack);
 	PlayerInputComponent->BindAction("HeavyAttack", IE_Pressed, this, &ASoulsLikeCharacter::HeavyAttack);
-
-
+	//pause
+	PlayerInputComponent->BindAction("pause", IE_Pressed, this, &ASoulsLikeCharacter::Pause);
 	//Dodge
 	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ASoulsLikeCharacter::Dodge);
 
@@ -291,6 +291,34 @@ void ASoulsLikeCharacter::LightAttack()
 			}
 		}
 	
+}
+
+void ASoulsLikeCharacter::Pause()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Game Paused"));
+	if (UGameplayStatics::IsGamePaused(GetWorld()))
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), false);
+		UE_LOG(LogTemp, Warning, TEXT("Game Resumed"));
+		WidgetInstance->RemoveFromViewport();
+	}
+	else
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+		UE_LOG(LogTemp, Warning, TEXT("Game Paused"));
+		if (pauseWidgetClass)
+		{
+
+			WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), pauseWidgetClass);
+
+			if (WidgetInstance)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Settings widget created: %s"), *WidgetInstance->GetClass()->GetName());
+				// Add widget to viewport
+				WidgetInstance->AddToViewport();
+			}
+		}
+	}
 }
 
 void ASoulsLikeCharacter::HeavyAttack()

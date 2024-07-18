@@ -2,8 +2,6 @@
 
 
 #include "MainMenuWidget.h"
-
-#include "MainMenuWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -43,8 +41,20 @@ void UMainMenuWidget::OnPlayClicked()
 
 void UMainMenuWidget::OnSettingsClicked()
 {
-    UE_LOG(LogTemp, Warning, TEXT("settings worked "));
-    // Open settings menu or widget
+    
+    this->RemoveFromViewport();
+    if (WidgetClass)
+    {
+        
+        UUserWidget* WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), WidgetClass);
+
+        if (WidgetInstance)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Settings widget created: %s"), *WidgetInstance->GetClass()->GetName());
+            // Add widget to viewport
+            WidgetInstance->AddToViewport();
+        }
+    }
 }
 
 void UMainMenuWidget::OnQuitClicked()
