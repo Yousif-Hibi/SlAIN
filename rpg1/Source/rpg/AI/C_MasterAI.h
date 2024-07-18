@@ -158,19 +158,19 @@ private:
 
 
 
-
+	    
 
 	UPROPERTY(EditAnywhere)
 	bool bCombatEnabled;
 	UPROPERTY(EditAnywhere)
-	float WeaponDamege = 20.0f;
+	float WeaponDamege = 25.0f;
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* TempMontage;
 
 	UPROPERTY(EditAnywhere)
 	FName PelvisBoneName;
-
+	
 
 
 

@@ -715,6 +715,6 @@ void AC_MasterAI::BeginPlay()
 	mainWeapon = GetWorld()->SpawnActor<AC_BaseWeapon>(ToSpawn, vec, rotat, SpawnPerams);
 	CombatComponent->SetMainWeapon(mainWeapon);
 	mainWeapon->OnAIEquipped();
-
-
+	
+	
 }

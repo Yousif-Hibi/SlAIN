@@ -62,8 +62,8 @@ void AC_AIController::SetUpPerceptionSystem()
 		if (sightConfig && hearingConfig && DamageConfig) {
 			SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception sight Component")));
 			
-			sightConfig->SightRadius=1000.0f;
-			sightConfig->LoseSightRadius = sightConfig->SightRadius + 20.0f;
+			sightConfig->SightRadius=2000.0f;
+			sightConfig->LoseSightRadius = sightConfig->SightRadius + 500.0f;
 			sightConfig->PeripheralVisionAngleDegrees = 90.0f;
 			sightConfig->SetMaxAge(5.0f);
 			sightConfig->AutoSuccessRangeFromLastSeenLocation = 20.0f;

@@ -217,7 +217,7 @@ private:
 	 UPROPERTY(EditAnywhere)
 	 bool bCombatEnabled;
 	 UPROPERTY(EditAnywhere)
-	 float WeaponDamege=20.0f;
+	 float WeaponDamege=30.0f;
 	 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* TempMontage;

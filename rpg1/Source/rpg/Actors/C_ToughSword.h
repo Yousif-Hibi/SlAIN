@@ -19,6 +19,5 @@ protected:
 	// Called when the game starts or when spawned
 	void BeginPlay() override;
 
-
-
+	
 };

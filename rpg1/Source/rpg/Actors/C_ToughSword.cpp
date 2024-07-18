@@ -8,12 +8,5 @@ void AC_ToughSword::BeginPlay()
 	Super::BeginPlay();
 	DamageType = EDamageType::MeleDamage;
 
-
-
-
-
-
-
-
 		
 }

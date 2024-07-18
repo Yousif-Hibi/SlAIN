@@ -159,6 +159,9 @@ bool UC_CollisionCombonent::CollisionTrace()
 			CallEventDispatherCpp();
 			return true;
 		}
+		else {
+			return false;
+		}
 
 	}
 

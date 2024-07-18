@@ -38,7 +38,7 @@ AC_BaseWeapon::AC_BaseWeapon() {
 void AC_BaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	Damege = 20;
+	Damege = 30;
 }
 
 void AC_BaseWeapon::OnEquipped()
