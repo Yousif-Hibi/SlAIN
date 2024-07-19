@@ -31,9 +31,9 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include <Perception/AISense_Sight.h>
 #include "rpg/AI/C_QuestKnight.h"
-
-
-
+#include "Kismet/GameplayStatics.h"
+#include "C_SaveGame.h"
+#include "C_SpawnPoints.h"
 
 
 
@@ -90,7 +90,7 @@ ASoulsLikeCharacter::ASoulsLikeCharacter()
 	TargetingComponent = CreateDefaultSubobject<UC_TargetingComponent>(TEXT("TargetingComponent"));
 
 
-	StatsComponents->tokkenAmount = 1;
+	StatsComponents->tokkenAmount = 5;
 
 	manger->stateBegin.AddDynamic(this, &ASoulsLikeCharacter::OnStateBegin);
 	manger->stateEnd.AddDynamic(this, &ASoulsLikeCharacter::OnStateEnd);
@@ -660,16 +660,25 @@ void ASoulsLikeCharacter::ApplyHitReactionPhysicsVelocity(float initialSpeed)
 void ASoulsLikeCharacter::PerformDeath()
 {
 	FTimerHandle TimerHandle;
-	EnableRagdoll();
-	ApplyHitReactionPhysicsVelocity(2000);
-	if (IsValid(CombatComponent->GetMainWeapon())) {
-		CombatComponent->GetMainWeapon()->SimulateWeaponPhysics();
-		
-	}
+	manger->SetState(EChartacterState::Dead);
+	GetMesh()->SetCollisionProfileName("Ragdoll", true);
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	
+				if (animInstance) {
+					
+					PlayAnimMontage(DeathMontage, 1.0f, FName("Default"));
 
-	GetCapsuleComponent()->DestroyComponent();
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASoulsLikeCharacter::PerformDeathAfterDelay, 4.0f, false);
-		
+				}
+
+	ApplyHitReactionPhysicsVelocity(2000);
+	
+	GetCharacterMovement()->DisableMovement();
+
+	
+
+	// Start a timer to respawn
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 6.0f, false);
+
 	
 }
 
@@ -806,7 +815,7 @@ void ASoulsLikeCharacter::OnStateBegin(EChartacterState CharacterState)
 	if (CharacterState == EChartacterState::Dead) {
 		bisGettingTargeted = false;
 		PerformDeath();
-		
+		SaveGame();
 	}
 }
 
@@ -932,6 +941,59 @@ void ASoulsLikeCharacter::SetUpSyimulusSource()
 
 }
 
+void ASoulsLikeCharacter::SaveGame()
+{
+	UC_SaveGame* SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::CreateSaveGameObject(USaveGame::StaticClass()));
+
+	if (SaveGameInstance)
+	{
+		
+		SaveGameInstance->PlayerLocation = this->GetActorLocation();
+		SaveGameInstance->PlayerRotation = this->GetActorRotation();
+
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("PlayerSaveSlot"), 0);
+	}
+}
+
+void ASoulsLikeCharacter::LoadSaveGame()
+{
+	UC_SaveGame* LoadGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerSaveSlot"), 0));
+
+	if (LoadGameInstance)
+	{
+		
+		this->SetActorLocation(LoadGameInstance->PlayerLocation);
+		this->SetActorRotation(LoadGameInstance->PlayerRotation);
+	}
+
+
+}
+
+void ASoulsLikeCharacter::Respawn()
+{
+	UE_LOG(LogTemp, Warning, TEXT("asdasdasdasdasdasdasdasdas spawn"));
+	SetActorTransform(RespawnPoint);
+	SetActorLocation(RespawnPoint.GetLocation());
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	StatsComponents->ModifyCurrentStatValue(Estat::Health,100.f,false);
+	StatsComponents->ModifyCurrentStatValue(Estat::Stamina, 100.f, false);
+	GetMesh()->SetCollisionProfileName("Ragdoll", false);
+	// Disable physics simulation for all bodies
+GetMesh()->SetSimulatePhysics(false);
+
+// Set the physics blend weight to 0 for all bodies below the pelvis bone
+GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PelvisBoneName, 0.0f);
+
+// Set the skeletal mesh to the default animation mode
+GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+}
+
+void ASoulsLikeCharacter::SetRespawnPoint(FTransform NewRespawnPoint)
+{
+	UE_LOG(LogTemp, Warning,TEXT("asdasdasdasdasdasdasdasdas set point"));
+	RespawnPoint = NewRespawnPoint;
+}
+
 
 
 void ASoulsLikeCharacter::Tick(float DeltaTime)
@@ -952,6 +1014,16 @@ void ASoulsLikeCharacter::BeginPlay()
 	float num = StatsComponents->GetCurrentStateValue(Estat::Health);
 	UE_LOG(LogTemp, Warning, TEXT("stamina %f"), num);
 	damageType = EDamageType::noDamage;
+
+	LoadSaveGame();
+
+
+
+
+
+
+
+
 }
 
 void ASoulsLikeCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)

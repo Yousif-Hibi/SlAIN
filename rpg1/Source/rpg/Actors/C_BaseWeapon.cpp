@@ -109,14 +109,12 @@ void AC_BaseWeapon::OnAIEquipped()
 
 void AC_BaseWeapon::OnHit(FHitResult hit)
 {
-	auto* Character = Cast<ASoulsLikeCharacter>(hit.GetActor());
-	auto* AICharacter = Cast<AC_MasterAI>(hit.GetActor());
 	if (!hit.GetActor()) {
-	//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
+		//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
 		return;
 	}
-	if (Character) {
-		UE_LOG(LogTemp, Warning, TEXT("hit %s   , %d"), *hit.GetActor()->GetName(),Damege);
+	if (auto* Character = Cast<ASoulsLikeCharacter>(hit.GetActor())) {
+		UE_LOG(LogTemp, Warning, TEXT("hit %s   , %d"), *hit.GetActor()->GetName(), Damege);
 		UGameplayStatics::ApplyPointDamage(hit.GetActor(),
 			Damege,
 			GetOwner()->GetActorForwardVector(),
@@ -126,7 +124,7 @@ void AC_BaseWeapon::OnHit(FHitResult hit)
 			nullptr
 		);
 	}
-	else if(AICharacter){
+	else if (auto* AICharacter = Cast<AC_MasterAI>(hit.GetActor())) {
 		float value = 1;
 		value = Damege * value;
 		
@@ -149,9 +147,16 @@ void AC_BaseWeapon::setDmg(int32 dmg)
 }
 
 void AC_BaseWeapon::SimulateWeaponPhysics()
-{
-	GetItemMesh()->SetCollisionProfileName(TEXT("PhysicsActor"), true);
+{ 
+	GetItemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetItemMesh()->SetSimulatePhysics(true);
+}
+
+
+void AC_BaseWeapon::StopSimulateWeaponPhysics()
+{
+	GetItemMesh()->SetSimulatePhysics(false);
+	GetItemMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 

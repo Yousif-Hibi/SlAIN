@@ -37,7 +37,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SimulateWeaponPhysics();
-
+	UFUNCTION(BlueprintCallable)
+	void StopSimulateWeaponPhysics();
 	UFUNCTION(BlueprintCallable)
 	TArray<UAnimMontage*> GetActionMontages(EChartacterAction ChartacterAction);
 	UFUNCTION(BlueprintCallable)

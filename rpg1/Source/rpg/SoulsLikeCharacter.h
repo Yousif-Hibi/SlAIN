@@ -24,6 +24,7 @@ class UC_StatsComponent;
 class UManger;
 class UC_TargetingComponent;
 
+
 UCLASS(config=Game)
 class ASoulsLikeCharacter : public ACharacter, public  IAnimInstance_CI ,public  ICombat_CI
 {
@@ -202,6 +203,18 @@ public:
 
 	void SetUpSyimulusSource();
 
+	UFUNCTION()
+	void SaveGame();
+	UFUNCTION()
+	void LoadSaveGame();
+
+	UFUNCTION()
+	void Respawn();
+	UFUNCTION()
+	void SetRespawnPoint(FTransform NewRespawnPoint);
+	
+
+
 	//UPROPERTY
 private:
 	UPROPERTY(EditAnywhere)
@@ -209,7 +222,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	bool bHitFront = true;
 
-	
+	FTransform RespawnPoint;
+	FTimerHandle RespawnTimerHandle;
 
 	UPROPERTY(EditAnywhere)
 	bool bHeavyAttack;
@@ -222,15 +236,22 @@ private:
 	 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* TempMontage;
-	
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* DeathMontage;
 	UPROPERTY(EditAnywhere)
 	FName PelvisBoneName  ;
 
 
+
+	
 	 
 
 
 public:
+
+	UPROPERTY()
+	FVector spawnLocation;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UUserWidget> pauseWidgetClass;
 
@@ -277,6 +298,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UC_TargetingComponent* TargetingComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class AC_SpawnPoints> SpawnPointClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TEnumAsByte < EMovementSpeedMode>  MovmentSpeedMode;

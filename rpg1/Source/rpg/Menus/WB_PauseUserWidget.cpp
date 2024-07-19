@@ -4,6 +4,8 @@
 #include "WB_PauseUserWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
+#include "rpg/SoulsLikeCharacter.h"
+
 void UWB_PauseUserWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -33,5 +35,10 @@ void UWB_PauseUserWidget::ResumeGame()
 
 void UWB_PauseUserWidget::QuitGame()
 {
+
+    if (ASoulsLikeCharacter* PlayerCharacter = Cast<ASoulsLikeCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+        PlayerCharacter->SaveGame();
+    }
     UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, true);
+
 }
