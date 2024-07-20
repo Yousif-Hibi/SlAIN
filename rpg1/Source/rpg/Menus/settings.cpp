@@ -7,7 +7,8 @@
 #include "GenericPlatform/GenericWindow.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Engine/Engine.h" 
-  
+
+
 void Usettings::NativeConstruct()
 {
 
@@ -121,8 +122,27 @@ void Usettings::OnApplyClicked()
    
     UserSettings->SetScreenResolution(Resolution);
     UserSettings->SetVSyncEnabled(bVsync);
-    UserSettings->SetVisualEffectQuality(GraphicsIndex);
-    UserSettings->ApplySettings(false);
+   
+    UserSettings->SetVisualEffectQuality(1);
+
+    if (GEngine)
+    {
+       
+        if (UserSettings)
+        {
+            UserSettings->SetViewDistanceQuality(0);   // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetAntiAliasingQuality(0);   // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetShadowQuality(0);         // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetPostProcessingQuality(0); // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetTextureQuality(0);        // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetVisualEffectQuality(0);   // 0 to 3: Low, Medium, High, Epic
+            UserSettings->SetFoliageQuality(0);        // 0 to 3: Low, Medium, High, Epic
+
+            // Apply the settings and save them
+            UserSettings->ApplySettings(true);
+        }
+    }
+    UserSettings->ApplySettings(true);
 }
 
 void Usettings::OnBackClicked()

@@ -105,6 +105,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Pause();
 	UFUNCTION(BlueprintCallable)
+	void stats();
+	UFUNCTION(BlueprintCallable)
 	void Dodge();
 	UFUNCTION(BlueprintCallable)
 	void ToggleWalk();
@@ -203,7 +205,7 @@ public:
 
 	void SetUpSyimulusSource();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)   
 	void SaveGame();
 	UFUNCTION()
 	void LoadSaveGame();
@@ -240,21 +242,29 @@ private:
 	UAnimMontage* DeathMontage;
 	UPROPERTY(EditAnywhere)
 	FName PelvisBoneName  ;
-
+	                               
 
 
 	
 	 
-
+	   
 
 public:
-
+	UPROPERTY(EditAnywhere)
+	int32 CharacterPoints=0;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Healthpoints=0;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Damagepoints=0;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Staminapoints=0;
 	UPROPERTY()
 	FVector spawnLocation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UUserWidget> pauseWidgetClass;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UUserWidget> statsWidgetClass;
 	UUserWidget* WidgetInstance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bisGettingTargeted = false;

@@ -349,7 +349,7 @@ void AC_MasterAI::EnableRagdoll()
 {
 	if (Health >= 0) {
 		GetCharacterMovement()->SetMovementMode(MOVE_None, 0);
-
+		GetCharacterMovement()->DisableMovement();
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 		GetMesh()->SetCollisionProfileName("Ragdoll", true);
@@ -379,7 +379,9 @@ void AC_MasterAI::PerformDeath()
 		CombatComponent->GetMainWeapon()->SimulateWeaponPhysics();
 
 	}
-
+	if (auto* const PlayerCharacter = Cast<ASoulsLikeCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+		PlayerCharacter->CharacterPoints++;
+	}
 	GetCapsuleComponent()->DestroyComponent();
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_MasterAI::PerformDeathAfterDelay, 4.0f, false);
 

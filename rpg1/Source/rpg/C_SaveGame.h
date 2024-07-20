@@ -26,4 +26,19 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FRotator PlayerRotation;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 points;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Healthpoints;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Damagepoints;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	int32 Staminapoints;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	class AC_BaseWeapon* mainWeapon;
 };

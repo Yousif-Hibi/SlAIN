@@ -122,7 +122,8 @@ void ASoulsLikeCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("pause", IE_Pressed, this, &ASoulsLikeCharacter::Pause);
 	//Dodge
 	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &ASoulsLikeCharacter::Dodge);
-
+	//stats
+	PlayerInputComponent->BindAction("stats", IE_Pressed, this, &ASoulsLikeCharacter::stats);
 	//walking
 	PlayerInputComponent->BindAction("ToggleWalk", IE_Pressed, this, &ASoulsLikeCharacter::ToggleWalk);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASoulsLikeCharacter::Sprint);
@@ -316,6 +317,49 @@ void ASoulsLikeCharacter::Pause()
 				UE_LOG(LogTemp, Warning, TEXT("Settings widget created: %s"), *WidgetInstance->GetClass()->GetName());
 				// Add widget to viewport
 				WidgetInstance->AddToViewport();
+				APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+				if (PlayerController)
+				{
+					PlayerController->bShowMouseCursor = true;
+					PlayerController->SetInputMode(FInputModeUIOnly());
+				}
+			}
+		}
+	}
+}
+
+void ASoulsLikeCharacter::stats()
+{
+	UE_LOG(LogTemp, Warning, TEXT("stats"));
+	if (UGameplayStatics::IsGamePaused(GetWorld()))
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), false);
+		UE_LOG(LogTemp, Warning, TEXT("Game Resumed"));
+		WidgetInstance->RemoveFromViewport();
+	}
+	else
+	{
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
+		UE_LOG(LogTemp, Warning, TEXT("Game Paused"));
+		if (statsWidgetClass)
+		{
+
+			WidgetInstance = CreateWidget<UUserWidget>(GetWorld(), statsWidgetClass);
+
+			if (WidgetInstance)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Settings widget created: %s"), *WidgetInstance->GetClass()->GetName());
+				// Add widget to viewport
+				WidgetInstance->AddToViewport();
+
+				APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+				if (PlayerController)
+				{
+					PlayerController->bShowMouseCursor = true;
+					PlayerController->SetInputMode(FInputModeUIOnly());
+				}
+
+
 			}
 		}
 	}
@@ -661,7 +705,7 @@ void ASoulsLikeCharacter::PerformDeath()
 {
 	FTimerHandle TimerHandle;
 	manger->SetState(EChartacterState::Dead);
-	GetMesh()->SetCollisionProfileName("Ragdoll", true);
+	
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	
 				if (animInstance) {
@@ -677,7 +721,7 @@ void ASoulsLikeCharacter::PerformDeath()
 	
 
 	// Start a timer to respawn
-	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 6.0f, false);
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 4.0f, false);
 
 	
 }
@@ -736,7 +780,7 @@ float ASoulsLikeCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Da
 {
 	StatsComponents->TakeDamage(DamageAmount);
 	
-
+	 
 	
 	if (CanRecieveHitreaction()) {
 		if (IsValid(DamageCauser)) {
@@ -943,31 +987,68 @@ void ASoulsLikeCharacter::SetUpSyimulusSource()
 
 void ASoulsLikeCharacter::SaveGame()
 {
-	UC_SaveGame* SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::CreateSaveGameObject(USaveGame::StaticClass()));
+	FString SaveSlotName = TEXT("PlayerSaveSlot");
+	const int32 UserIndex = 0;
+
+	UC_SaveGame* SaveGameInstance;
+
+	// Check if the save game already exists
+	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, UserIndex))
+	{
+		// If it exists, load the existing save game
+		SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, UserIndex));
+	}
+	else
+	{
+		// If it does not exist, create a new save game instance
+		SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::CreateSaveGameObject(UC_SaveGame::StaticClass()));
+	}
 
 	if (SaveGameInstance)
 	{
-		
+		// Update the save game data with the current game state
 		SaveGameInstance->PlayerLocation = this->GetActorLocation();
 		SaveGameInstance->PlayerRotation = this->GetActorRotation();
+		SaveGameInstance->points = this->CharacterPoints;
+		SaveGameInstance->Healthpoints = this->Healthpoints;
+		SaveGameInstance->Staminapoints = this->Staminapoints;
+		SaveGameInstance->Damagepoints = this->Damagepoints;
 
-		UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("PlayerSaveSlot"), 0);
+		// Save the updated game instance
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveSlotName, UserIndex);
 	}
 }
 
 void ASoulsLikeCharacter::LoadSaveGame()
 {
-	UC_SaveGame* LoadGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerSaveSlot"), 0));
+	
+		// Load the save game instance from the specified slot
+		UC_SaveGame* LoadGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerSaveSlot"), 0));
 
-	if (LoadGameInstance)
-	{
-		
-		this->SetActorLocation(LoadGameInstance->PlayerLocation);
-		this->SetActorRotation(LoadGameInstance->PlayerRotation);
-	}
-
-
+		if (LoadGameInstance)
+		{
+			// Update the character's properties with the loaded values
+			this->SetActorLocation(LoadGameInstance->PlayerLocation);
+			this->SetActorRotation(LoadGameInstance->PlayerRotation);
+			this->CharacterPoints = LoadGameInstance->points;
+			this->Healthpoints = LoadGameInstance->Healthpoints;
+			this->Staminapoints = LoadGameInstance->Staminapoints;
+			this->Damagepoints = LoadGameInstance->Damagepoints;
+			StatsComponents->SetMaxStateValue(Estat::Health,100.f+(Healthpoints)*10);
+			StatsComponents->SetMaxStateValue(Estat::Stamina, 100.f + (Staminapoints) * 10);
+			if (LoadGameInstance->mainWeapon) {
+				CombatComponent->SetMainWeapon(LoadGameInstance->mainWeapon);
+				CombatComponent->GetMainWeapon()->Damege = (Damagepoints * 3) + CombatComponent->GetMainWeapon()->Damege;
+			}
+		}
+		else {
+			SaveGame();
+		}
 }
+
+
+
+
 
 void ASoulsLikeCharacter::Respawn()
 {
@@ -978,14 +1059,9 @@ void ASoulsLikeCharacter::Respawn()
 	StatsComponents->ModifyCurrentStatValue(Estat::Health,100.f,false);
 	StatsComponents->ModifyCurrentStatValue(Estat::Stamina, 100.f, false);
 	GetMesh()->SetCollisionProfileName("Ragdoll", false);
-	// Disable physics simulation for all bodies
-GetMesh()->SetSimulatePhysics(false);
+	
 
-// Set the physics blend weight to 0 for all bodies below the pelvis bone
-GetMesh()->SetAllBodiesBelowPhysicsBlendWeight(PelvisBoneName, 0.0f);
-
-// Set the skeletal mesh to the default animation mode
-GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+SaveGame();
 }
 
 void ASoulsLikeCharacter::SetRespawnPoint(FTransform NewRespawnPoint)
@@ -1016,6 +1092,8 @@ void ASoulsLikeCharacter::BeginPlay()
 	damageType = EDamageType::noDamage;
 
 	LoadSaveGame();
+
+
 
 
 

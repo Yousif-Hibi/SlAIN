@@ -35,7 +35,7 @@ void UMainMenuWidget::OnPlayClicked()
         PlayerController->SetInputMode(FInputModeGameOnly());
     }
 
-    UGameplayStatics::OpenLevel(GetWorld(), "IronClanMap");
+    UGameplayStatics::OpenLevel(GetWorld(), "ironClanMap");
     
 }
 

@@ -74,9 +74,7 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 	
 
 	auto* AIspellCaster = Cast<AC_MasterAI>(spellCaster);
-	auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor());
-	auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor());
-
+	
 	//if (AICharacter && AIspellCaster) {
 	//	UE_LOG(LogTemp, Warning, TEXT("hit"));
 	//	return; }
@@ -85,9 +83,7 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 		//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
 		return;
 	}
-	if (Character) {
-		UE_LOG(LogTemp, Warning, TEXT("hit %s"), *Character->GetName());
-		
+	if (auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor())) {
 		UGameplayStatics::ApplyPointDamage(OtherActor,
 			Dameges,
 			spellCaster->GetActorForwardVector(),
@@ -105,9 +101,12 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			this->Destroy();
 		}
 	}
-	else if (AICharacter) {
+	else if (auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor())) {
+		float value = 1;
+		value = Dameges * value;
+
 		UE_LOG(LogTemp, Warning, TEXT("hitai %s"), *Hit.GetActor()->GetName());
-	
+
 		UGameplayStatics::ApplyPointDamage(Hit.GetActor(),
 			Dameges,
 			GetOwner()->GetActorForwardVector(),
@@ -124,6 +123,8 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			this->Destroy();
 		}
 	}
+	
+	
 
 }
 
