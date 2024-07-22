@@ -152,14 +152,24 @@ bool UC_CollisionCombonent::CollisionTrace()
 		LastHit = OutHit;
 		UC_CollisionCombonent* Singleton = GetEventSingleton();
 		Singleton->LastHit = OutHit;
-		if (!AreadyHitActors.Contains(LastHit.GetActor())) {
-			
-			HitActor = LastHit.GetActor();
-			AreadyHitActors.Add(HitActor);
-			CallEventDispatherCpp();
-			return true;
+		if (!AreadyHitActors.Contains(LastHit.GetActor()))
+		{
+			// Ensure the actor in LastHit is valid before using it
+			 HitActor = LastHit.GetActor();
+			if (HitActor)
+			{
+				AreadyHitActors.Add(HitActor);
+				CallEventDispatherCpp();
+				return true;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("HitActor is null"));
+				return false; // Return early if HitActor is null
+			}
 		}
-		else {
+		else
+		{
 			return false;
 		}
 
@@ -202,8 +212,4 @@ void UC_CollisionCombonent::CallEventDispatherCpp()
 
 }
 
-UC_CollisionCombonent::~UC_CollisionCombonent()noexcept
-{
-	eventDispatherSingletons = nullptr;
-}
 

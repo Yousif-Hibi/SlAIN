@@ -26,7 +26,7 @@ private:
 public:
 	// Sets default values for this component's properties
 	UC_CollisionCombonent();
-	~UC_CollisionCombonent() noexcept;
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

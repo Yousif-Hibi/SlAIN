@@ -55,66 +55,73 @@ void AC_AIController::OnPossess(APawn* InPawn)
 
 void AC_AIController::SetUpPerceptionSystem()
 {
-	sightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
-	hearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Hearing Config"));
-	otherhearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("other Hearing Config"));
-	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("Damage Config"));
-		if (sightConfig && hearingConfig && DamageConfig) {
-			SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception sight Component")));
-			
-			sightConfig->SightRadius=2000.0f;
-			sightConfig->LoseSightRadius = sightConfig->SightRadius + 500.0f;
-			sightConfig->PeripheralVisionAngleDegrees = 90.0f;
-			sightConfig->SetMaxAge(5.0f);
-			sightConfig->AutoSuccessRangeFromLastSeenLocation = 20.0f;
-			sightConfig->DetectionByAffiliation.bDetectEnemies = true;
-			sightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-			sightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+    // Create and configure the perception component only once
+    UAIPerceptionComponent* PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception Component"));
+    SetPerceptionComponent(*PerceptionComp);
 
-			GetPerceptionComponent()->SetDominantSense(*sightConfig->GetSenseImplementation());
-			GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AC_AIController::OnTargetDetected);
-			
-			GetPerceptionComponent()->ConfigureSense(*sightConfig);
-			
-			GetAIPerceptionComponent()->GetKnownPerceivedActors(GetPerceptionComponent()->GetDominantSense(), KnownPerceivedActors);
-			
-			
-			
+    if (PerceptionComp)
+    {
+        // Create and configure sense configs
+        sightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+        hearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Hearing Config"));
+        otherhearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Other Hearing Config"));
+        DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("Damage Config"));
 
-			GetPerceptionComponent()->OnTargetPerceptionForgotten.AddDynamic(this, &AC_AIController::OnTargetPerceptionForgotten);
+        if (sightConfig)
+        {
+            sightConfig->SightRadius = 2000.0f;
+            sightConfig->LoseSightRadius = sightConfig->SightRadius + 500.0f;
+            sightConfig->PeripheralVisionAngleDegrees = 130.0f;
+            sightConfig->SetMaxAge(5.0f);
+            sightConfig->AutoSuccessRangeFromLastSeenLocation = 5.0f;
+            sightConfig->DetectionByAffiliation.bDetectEnemies = true;
+            sightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+            sightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
-			
+            PerceptionComp->ConfigureSense(*sightConfig);
+        }
 
-			hearingConfig->HearingRange = 500;
-			hearingConfig->SetMaxAge(5.0f);
+        if (hearingConfig)
+        {
+            hearingConfig->HearingRange = 2000.0f;
+            hearingConfig->SetMaxAge(5.0f);
+            hearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+            hearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+            hearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
-			hearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-			hearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
-			hearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+            PerceptionComp->ConfigureSense(*hearingConfig);
+        }
 
-			GetPerceptionComponent()->SetDominantSense(*hearingConfig->GetSenseImplementation());
-			GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AC_AIController::OnTargetDetected);
-			GetPerceptionComponent()->ConfigureSense(*hearingConfig);
-			otherhearingConfig->HearingRange = 1000;
-			otherhearingConfig->SetMaxAge(5.0f);
+        if (otherhearingConfig)
+        {
+            otherhearingConfig->HearingRange = 1000.0f;
+            otherhearingConfig->SetMaxAge(5.0f);
+            otherhearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+            otherhearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+            otherhearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
-			otherhearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-			otherhearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
-			otherhearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+            PerceptionComp->ConfigureSense(*otherhearingConfig);
+        }
 
-			GetPerceptionComponent()->SetDominantSense(*otherhearingConfig->GetSenseImplementation());
-			GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AC_AIController::OnTargetDetected);
-			GetPerceptionComponent()->ConfigureSense(*otherhearingConfig);
-			
-			GetPerceptionComponent()->ConfigureSense(*DamageConfig);
+        if (DamageConfig)
+        {
+            PerceptionComp->ConfigureSense(*DamageConfig);
+        }
 
-			
-			
-			
-		}
+        // Set the dominant sense once
+        PerceptionComp->SetDominantSense(*sightConfig->GetSenseImplementation());
 
-		
+        // Add delegates only once
+        PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AC_AIController::OnTargetDetected);
+        PerceptionComp->OnTargetPerceptionForgotten.AddDynamic(this, &AC_AIController::OnTargetPerceptionForgotten);
+
+        // Use a different name for the local variable to avoid hiding class members
+        TArray<AActor*> PerceivedActors;
+        PerceptionComp->GetKnownPerceivedActors(PerceptionComp->GetDominantSense(), PerceivedActors);
+    }
 }
+
+
 
 
 
@@ -122,13 +129,23 @@ void AC_AIController::OnTargetDetected(AActor* Actor, FAIStimulus const stimulus
 {
 	playerCharacter = Cast<ASoulsLikeCharacter>(Actor);
 	if ( playerCharacter ) {
-		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", stimulus.WasSuccessfullySensed());
+		UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+		if (BlackboardComp)
+		{
+			bool bWasSuccessfullySensed = stimulus.WasSuccessfullySensed();
+			BlackboardComp->SetValueAsBool("CanSeePlayer", bWasSuccessfullySensed);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Blackboard component is null"));
+		}
 	}
 	if (stimulus.GetAge()==4.0f) {
 		UE_LOG(LogTemp, Warning, TEXT("forgot"));
 	}
 	if(!stimulus.IsActive()) {
-		UE_LOG(LogTemp, Warning, TEXT("cant see player"));
+		
 		
 	
 	}

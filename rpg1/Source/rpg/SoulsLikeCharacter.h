@@ -157,6 +157,9 @@ public:
 	void PerformDeath();
 	UFUNCTION()
 	void PerformDeathAfterDelay();
+	UFUNCTION()
+	void DespawnAllMasterAI();
+
 
 	virtual  void ContinueAttack() override;
 	virtual  void RestAttack() override;

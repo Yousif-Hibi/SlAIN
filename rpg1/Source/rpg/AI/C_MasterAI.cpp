@@ -442,44 +442,45 @@ void AC_MasterAI::RestCombat()
 
 float AC_MasterAI::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	StatsComponent->TakeDamage(DamageAmount);
-	FVector DamageLocation = GetActorLocation(); 
-	
-	APawn* instgater = Cast<APawn>(DamageCauser);
-	MakeNoise(1.f,instgater,instgater->GetActorLocation());
-	
-	 
-	if (CanRecieveHitreaction()) {
-		if (IsValid(DamageCauser)) {
-			FVector thisVector = this->GetActorForwardVector();
+	if (ASoulsLikeCharacter* character = Cast<ASoulsLikeCharacter>(DamageCauser)) {
+		StatsComponent->TakeDamage(DamageAmount);
+		FVector DamageLocation = GetActorLocation();
 
-			FVector otherVector = (DamageCauser->GetActorForwardVector());
-			float n = FVector::DotProduct(thisVector, otherVector);
-			if (IsValueInRange(n, -1.0f, 0.1f, true, true)) {
-				UE_LOG(LogTemp, Warning, TEXT("name , %f "), n);
-				bHitFront = true;
+		APawn* instgater = Cast<APawn>(DamageCauser);
+		MakeNoise(1.f, instgater, instgater->GetActorLocation());
+
+
+		if (CanRecieveHitreaction()) {
+			if (IsValid(DamageCauser)) {
+				FVector thisVector = this->GetActorForwardVector();
+
+				FVector otherVector = (DamageCauser->GetActorForwardVector());
+				float n = FVector::DotProduct(thisVector, otherVector);
+				if (IsValueInRange(n, -1.0f, 0.1f, true, true)) {
+					UE_LOG(LogTemp, Warning, TEXT("name , %f "), n);
+					bHitFront = true;
+				}
+				else {
+					UE_LOG(LogTemp, Warning, TEXT("noname "));
+					bHitFront = false;
+				}
 			}
-			else {
-				UE_LOG(LogTemp, Warning, TEXT("noname "));
-				bHitFront = false;
-			}
+
+			UE_LOG(LogTemp, Warning, TEXT("damege cuser %s"), *DamageCauser->GetName());
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation());
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
+				hitParticals,
+				GetActorLocation()
+			);
 		}
-		
-		UE_LOG(LogTemp, Warning, TEXT("damege cuser %s"),* DamageCauser->GetName());
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, GetActorLocation());
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
-			hitParticals,
-			GetActorLocation()
-		);
+		if (StatsComponent->GetCurrentStateValue(Estat::Health) <= 0) {
+			manger->SetState(EChartacterState::Dead);
+		}
+		bisMagic = CombatComponent->bmaigcenabled;
+		UE_LOG(LogTemp, Warning, TEXT("name , %d "), bisMagic);
+		PerfformHitStun();
+
 	}
-	if (StatsComponent->GetCurrentStateValue(Estat::Health) <= 0) {
-		manger->SetState(EChartacterState::Dead);
-	}
-	bisMagic = CombatComponent->bmaigcenabled;
-	UE_LOG(LogTemp, Warning, TEXT("name , %d "), bisMagic);
-	PerfformHitStun();
-	
-	
 	
 
 	return 0.0f;

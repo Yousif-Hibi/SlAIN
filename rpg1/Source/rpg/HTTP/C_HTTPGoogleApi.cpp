@@ -42,7 +42,7 @@ void UC_HTTPGoogleApi::onResponseReceived(FHttpRequestPtr Request, FHttpResponse
         FString ResponseString = Response->GetContentAsString();
         TSharedPtr<FJsonObject> JsonObject;
         TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
-        UE_LOG(LogTemp, Warning, TEXT("Received audio content: %s"), *ResponseString);
+        
 
         if (FJsonSerializer::Deserialize(Reader, JsonObject))
         {

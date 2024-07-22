@@ -26,23 +26,21 @@ UBTTask_MeleeAttack::UBTTask_MeleeAttack()
 EBTNodeResult::Type UBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto const OutOfRange = !OwnerComp.GetBlackboardComponent()->GetValueAsBool(GetSelectedBlackboardKey());
-	if (OutOfRange) {
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		return EBTNodeResult::Succeeded;
-	}
-	if (auto const controler = OwnerComp.GetAIOwner()) {
-		if (auto* const AIcharacter = Cast <AC_MasterAI>(controler->GetPawn())) {
-			if (auto* const icombat = Cast<ICombat_CI>(AIcharacter)) {
-				if (MontageHasFinished(AIcharacter)) {
-					icombat->Execute_AIAttack(AIcharacter);
-					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-					return EBTNodeResult::Succeeded;
+	
+		if (auto const controler = OwnerComp.GetAIOwner()) {
+			if (auto* const AIcharacter = Cast <AC_MasterAI>(controler->GetPawn())) {
+				if (auto* const icombat = Cast<ICombat_CI>(AIcharacter)) {
+					if (MontageHasFinished(AIcharacter)) {
+						icombat->Execute_AIAttack(AIcharacter);
+						FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+						return EBTNodeResult::Succeeded;
 
+					}
 				}
+
 			}
-			
 		}
-	}
+	
 	return EBTNodeResult::Failed;
 }
 

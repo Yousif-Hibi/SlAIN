@@ -19,7 +19,7 @@ AC_SpawnPoints::AC_SpawnPoints()
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetupAttachment(Root);
 
-	TriggerBox->OnComponentBeginOverlap.AddDynamic(this,& AC_SpawnPoints::OnOverlapBegin);
+	TriggerBox->OnComponentBeginOverlap.AddDynamic(this,&AC_SpawnPoints::OnOverlapBegin);
 
 }
 
@@ -39,11 +39,11 @@ void AC_SpawnPoints::Tick(float DeltaTime)
 
 void AC_SpawnPoints::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp,Warning,TEXT("saved"));
+	UE_LOG(LogTemp,Warning,TEXT("SaveGame();saved"));
 	ASoulsLikeCharacter* Player = Cast<ASoulsLikeCharacter>(OtherActor);
 	if (Player)
 	{
-		Player->SetRespawnPoint(SpawnTransform);
+		Player->SetRespawnPoint(Player->GetActorTransform());
 	}
 
 }

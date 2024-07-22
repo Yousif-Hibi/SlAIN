@@ -37,6 +37,13 @@ public:
 	void spawnMage(int32 numToSpawn);
 	UFUNCTION()
 	void spawnKnight(int32 numToSpawn);
+	UFUNCTION()
+	void DespawnKnights();
+	UFUNCTION()
+	void DespawnMages();
+
+
+
 	UFUNCTION(BlueprintCallable)
 	void ProcessReceivedText(const FString& ReceivedText);
 
@@ -45,7 +52,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TSubclassOf<AC_HumanoidEnemy> KnightClass;
-	
+
 	 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class APatrolPath* path;
@@ -54,21 +61,25 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 NumknightsToSpawn = 2;
 
+
 	UPROPERTY()
 	int32 knightHealth;
+
 	UPROPERTY()
 	int32 magiHealth;
 	UPROPERTY()
 	int32 knightDamage;
 	UPROPERTY()
 	int32 magiDamage;
-
+	
 
 	APatrolPath* FindClosestPatrolPath() const;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBehaviorTree* magiBehaviorTree;
 
-
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UBehaviorTree* KnightBehaviorTree;
 
 
 };

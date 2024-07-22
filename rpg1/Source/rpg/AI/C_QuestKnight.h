@@ -37,8 +37,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static void WriteStringToFile(FString FilePath, FString  String, bool& bOutSuccess, FString& OutInfoMassage);
 
-	
-
+	UFUNCTION(BlueprintCallable)
+	void Savegame();
+	UFUNCTION(BlueprintCallable)
+	void Loadgame();
 	UFUNCTION(BlueprintCallable)
 	void ProcessReceivedText(const FString& ReceivedText);
 	UFUNCTION(BlueprintCallable)
@@ -55,11 +57,15 @@ public:
 	
 	void SendPostQestRequest(FString FileContent);
 
-	
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	FVector QuestLocation;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	FRotator  QuestRotation;
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> widget;
-
+	
 	UPROPERTY()
 	UUserWidget* CurrentWidget;
 
@@ -71,6 +77,8 @@ private:
 	int32 DialogIndex = -1;
 
 	void RemoveCurrentWidget();
-
+	UPROPERTY()
+	TArray<FString> fileDialog;
+	
 
 };

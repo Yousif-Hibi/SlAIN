@@ -24,7 +24,7 @@ EBTNodeResult::Type UBTTask_IsInMeleeRange::ExecuteTask(UBehaviorTreeComponent& 
 			if (auto* const PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)) {
 				OwnerComp.GetBlackboardComponent()->SetValueAsBool(
 					GetSelectedBlackboardKey(),
-					AIcharacter->GetDistanceTo(PlayerCharacter) <= meleeRange);
+					AIcharacter->GetDistanceTo(PlayerCharacter) <= meleeRange+10.f);
 				UE_LOG(LogTemp, Warning, TEXT("asdas %f"), AIcharacter->GetDistanceTo(PlayerCharacter));
 				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 				return EBTNodeResult::Succeeded;

@@ -41,4 +41,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	class AC_BaseWeapon* mainWeapon;
+
+
+	UPROPERTY()
+	int32 Questline ;
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	FVector QuestLocation;
+
+	UPROPERTY(VisibleAnywhere, Category = Basic)
+	FRotator  QuestRotation;
 };

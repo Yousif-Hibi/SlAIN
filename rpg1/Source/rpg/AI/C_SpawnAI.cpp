@@ -159,21 +159,22 @@ void AC_SpawnAI::spawnMage(int32 numToSpawn)
 		{
 			APatrolPath* ClosestPath = FindClosestPatrolPath();
 			if (ClosestPath)
-			{
+			{   
 				// Assign the patrol path
 				SpawnedMage->SetPatrolPath(ClosestPath);
 				SpawnedMage->StatsComponent->SetMaxStateValue(Estat::Health, magiHealth);
 				SpawnedMage->StatsComponent->SetBaseStateValue(Estat::Health, magiHealth);
 				SpawnedMage->StatsComponent->ModifyCurrentStatValue(Estat::Health, magiHealth, false);
-				auto* weapon = Cast<AC_BaseMagicWeapon>(SpawnedMage->CombatComponent->GetMainWeapon());
+				SpawnedMage->BehaviorTree = magiBehaviorTree;
+				/*auto* weapon = Cast<AC_BaseMagicWeapon>(SpawnedMage->CombatComponent->GetMainWeapon());
 				if (weapon)
 				{
 					weapon->MagicDamegeSet(magiDamage);
 				}
-				else
+				else     
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Weapon  is null"));
-				}
+				}*/
 				UE_LOG(LogTemp, Warning, TEXT("Mage %d spawned and closest patrol path assigned."), i);
 			}
 			else
@@ -206,13 +207,13 @@ void AC_SpawnAI::spawnKnight(int32 numToSpawn)
 				SpawnedKnight->StatsComponent->SetBaseStateValue(Estat::Health, knightHealth);
 				SpawnedKnight->StatsComponent->ModifyCurrentStatValue(Estat::Health, knightHealth, false);
 				SpawnedKnight->mainWeapon->setDmg( knightDamage);
-				
+				SpawnedKnight->BehaviorTree = KnightBehaviorTree;
 				UE_LOG(LogTemp, Warning, TEXT("Mage %d spawned and closest patrol path assigned."), i);
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("No patrol path found for Mage %d."), i);
-			}
+			}				
 		}
 		else
 		{
@@ -221,6 +222,19 @@ void AC_SpawnAI::spawnKnight(int32 numToSpawn)
 	}
 
 }
+
+void AC_SpawnAI::DespawnKnights()
+{
+}
+
+void AC_SpawnAI::DespawnMages()
+{
+}
+
+
+
+
+
 void AC_SpawnAI::ProcessReceivedText(const FString& ReceivedText)
 {
 

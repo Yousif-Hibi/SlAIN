@@ -2,6 +2,7 @@
 
 
 #include "C_HumanoidEnemy.h"
+#include "C_AIController.h"
 
 void AC_HumanoidEnemy::Tick(float DeltaTime)
 {
@@ -12,3 +13,4 @@ void AC_HumanoidEnemy::SetPatrolPath(APatrolPath* NewPatrolPath)
 {
 	PatrolPath = NewPatrolPath;
 }
+

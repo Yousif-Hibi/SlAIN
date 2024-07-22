@@ -47,6 +47,10 @@ void UOptionUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
     Super::NativeTick(MyGeometry, InDeltaTime);
 
     Points = PlayerCharacter->CharacterPoints;
+    HealthPoints = PlayerCharacter->Healthpoints;
+    StaminaPoints = PlayerCharacter->Staminapoints;
+    DamagePoints = PlayerCharacter->Damagepoints;
+
 }
 
 void UOptionUserWidget::OnButtonClick()
@@ -59,8 +63,9 @@ void UOptionUserWidget::OnHealthLessClicked()
     if (PlayerCharacter->Healthpoints > 0) {
         if (PlayerCharacter->CharacterPoints >= 5) {
 
-            Points = Points + 5;
+            PlayerCharacter->CharacterPoints = PlayerCharacter->CharacterPoints + 5;
             PlayerCharacter->Healthpoints = PlayerCharacter->Healthpoints + 1;
+           
         }
 
     }
@@ -69,11 +74,12 @@ void UOptionUserWidget::OnHealthLessClicked()
 void UOptionUserWidget::OnHealthPluseClicked()
 {
     UE_LOG(LogTemp, Warning, TEXT("HealthPluse button clicked"));
-    if (PlayerCharacter->Healthpoints > 0) {
+    if (PlayerCharacter->Healthpoints >= 0) {
         if (PlayerCharacter->CharacterPoints >= 5) {
 
             Points = Points - 5;
             PlayerCharacter->Healthpoints = PlayerCharacter->Healthpoints + 1;
+           
         }
 
     }
@@ -96,7 +102,7 @@ void UOptionUserWidget::OnStaminaLessClicked()
 void UOptionUserWidget::OnStaminaPluseClicked()
 {
     UE_LOG(LogTemp, Warning, TEXT("StaminaPluse button clicked"));
-    if (PlayerCharacter->Staminapoints > 0) {
+    if (PlayerCharacter->Staminapoints >= 0) {
         if (PlayerCharacter->CharacterPoints >= 5) {
 
             Points = Points - 5;
@@ -125,7 +131,7 @@ void UOptionUserWidget::OnDamagePluseClicked()
 {
     UE_LOG(LogTemp, Warning, TEXT("DamageMore button clicked"));
 
-    if (PlayerCharacter->Damagepoints > 0) {
+    if (PlayerCharacter->Damagepoints >= 0) {
         if (PlayerCharacter->Damagepoints >= 5) {
 
             Points = Points - 5;

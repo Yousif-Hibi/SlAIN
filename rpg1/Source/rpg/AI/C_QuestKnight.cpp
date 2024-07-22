@@ -6,7 +6,8 @@
 #include "HAL/PlatformFileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "rpg/C_SaveGame.h"
 #include "rpg/HTTP/C_HTTPGoogleApi.h"
 #include <Blueprint/AIBlueprintHelperLibrary.h>
 #include "HAL/PlatformProcess.h"
@@ -18,13 +19,23 @@
 #include "Json.h"
 #include "JsonUtilities.h"
 #include "Misc/ConfigCacheIni.h"
+#include "rpg/AI/PatrolPath.h"
+
+
 AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
 {
     static ConstructorHelpers::FClassFinder<UUserWidget> QuestText(TEXT("/Game/Static/quests/WB_QuestText.WB_QuestText_C"));
     if (QuestText.Succeeded())
     {
         widget = QuestText.Class;
+        
     }
+    Loadgame();
+       fileDialog = {
+        TEXT("In the desolate and ravaged landscape of The Rustborn Wastes, the remnants of a once-glorious world stand as stark reminders of its past conflicts. The land, now divided into five distinct regions, each governed by one of the elemental clans, bears witness to the aftermath of ancient wars. These clans, bound by their elemental conduits, hold dominion over their territories, their powers a blend of earth's primal forces. The Ironclad Clan, among these, is the most formidable, its stronghold a bastion of iron and strength. As a knight from a far-off land, you journey to this fractured world with a singular aim: to claim the Iron Conduit, a source of immense power, and reshape the balance within these war-torn lands."),
+        TEXT("Long ago, in a desperate bid to secure their dominion and harness the elemental powers more effectively, the clans of The Rustborn Wastes devised a series of powerful enchantments. These magics, intended to bind and channel elemental forces, inadvertently transformed their most devoted followers into humanoid goats—creatures both wise and formidable. These beings, known as the Gauron, now serve as the clan’s most elite guardians and emissaries. Possessing a unique blend of human intellect and goat-like resilience, they have become key figures in the protection of the conduits. Their transformation was a testament to the depth of their commitment, and now, they stand as both allies and obstacles in your quest to obtain the Iron Conduit."),
+        TEXT("As you venture deeper into the Ironclad Clan’s citadel, you encounter the Gauron, who serve as both protectors and gatekeepers of the conduit. The path to the Iron Conduit is fraught with challenges, but through clever strategy and bravery, you manage to forge a crucial alliance with a sympathetic Gauron. This ally, seeing the righteousness of your cause, aids you in navigating the citadel's defenses and overcoming its trials. Together, you confront the clan’s leaders in a climactic battle, showcasing your skill and determination. With the help of your new ally, you successfully claim the Iron Conduit, securing its power and marking a pivotal moment in the transformation of The Rustborn Wastes.")
+    };
 }
 
 void AC_QuestKnight::TalkToNPC()
@@ -41,11 +52,13 @@ void AC_QuestKnight::TalkToNPC()
     else
     {
         if (PartNumber <= 3) {
+            Savegame();
             DialogIndex = -1;
             Dialog.Empty();
             bAllowedTOTelleport = true;
             PartNumber++;
             fileToRead();
+            
         }
     }
 }
@@ -125,6 +138,69 @@ void AC_QuestKnight::WriteStringToFile(FString FilePath, FString String, bool& b
     OutInfoMessage = FString::Printf(TEXT("Wrote to file - '%s'"), *FilePath);
 }
 
+void AC_QuestKnight::Savegame()
+{
+    FString SaveSlotName = TEXT("PlayerSaveSlot");
+    const int32 UserIndex = 0;
+
+    UC_SaveGame* SaveGameInstance;
+
+    // Check if the save game already exists
+    if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, UserIndex))
+    {
+        // If it exists, load the existing save game
+        SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, UserIndex));
+    }
+    else
+    {
+        // If it does not exist, create a new save game instance
+        SaveGameInstance = Cast<UC_SaveGame>(UGameplayStatics::CreateSaveGameObject(UC_SaveGame::StaticClass()));
+    }
+
+    if (SaveGameInstance)
+    {
+
+
+        SaveGameInstance->Questline = PartNumber;
+        SaveGameInstance->QuestRotation = this->QuestRotation;
+        SaveGameInstance->QuestLocation = this->QuestLocation;
+
+
+       
+        // Save the updated game instance
+        UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveSlotName, UserIndex);
+
+
+
+
+
+
+
+    }
+
+
+}
+void AC_QuestKnight::Loadgame()
+{
+
+    // Load the save game instance from the specified slot
+    UC_SaveGame* LoadGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerSaveSlot"), 0));
+
+    if (LoadGameInstance)
+    {
+        // PartNumber= LoadGameInstance->Questline;
+         this->QuestRotation = LoadGameInstance->QuestRotation ;
+         this->QuestLocation = LoadGameInstance->QuestLocation;
+        
+      
+    }
+    else {
+        Savegame();
+    }
+
+}
+
+
 void AC_QuestKnight::RemoveCurrentWidget()
 {
     if (CurrentWidget)
@@ -154,9 +230,11 @@ void AC_QuestKnight::CreateQuestFile()
 
 void AC_QuestKnight::Teleport(FVector Location)
 {
+   
     if (bAllowedTOTelleport) {
         SetActorLocation(Location);
         bAllowedTOTelleport = false;
+       
     }
 }
 
@@ -164,27 +242,39 @@ void AC_QuestKnight::fileToRead()
 {
     bool bSuccess;
     FString InfoMessage;
-    UE_LOG(LogTemp, Warning, TEXT("sssssssssssssss %d"), PartNumber);
+
+    // Construct the file path based on PartNumber
     FString FilePath = FString::Printf(TEXT("Static/quests/QuestText/KnightQuestPart%d.txt"), PartNumber);
-    // Correcting the file path by ensuring it's relative to the project's content directory
     FString FullFilePath = FPaths::ProjectContentDir() + FilePath;
 
     // Log the file path for debugging purposes
     UE_LOG(LogTemp, Warning, TEXT("Attempting to read file at path: %s"), *FullFilePath);
 
     FString FileContent = ReadStringFromFile(FullFilePath, bSuccess, InfoMessage);
-    UE_LOG(LogTemp, Warning, TEXT("Successfully read linessssssssss: %s"), *FileContent);
 
     if (bSuccess)
     {
-       
+        // File read successfully, send request with file content
         SendPostQestRequest(FileContent);
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("%s"), *InfoMessage);
+        // Failed to read file, fallback to fileDialog
+        UE_LOG(LogTemp, Warning, TEXT("Failed to read file: %s"), *InfoMessage);
+
+        // Use fileDialog content if available
+        if (fileDialog.Num() > 0 && PartNumber <= fileDialog.Num())
+        {
+            FString DialogContent = fileDialog[PartNumber - 1]; // Adjust index to match PartNumber
+            SendPostQestRequest(DialogContent);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("No fallback content available in fileDialog"));
+        }
     }
 }
+
 
 void AC_QuestKnight::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {

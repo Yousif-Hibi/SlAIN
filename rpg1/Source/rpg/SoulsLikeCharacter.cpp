@@ -34,9 +34,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "C_SaveGame.h"
 #include "C_SpawnPoints.h"
-
-
-
+#include "rpg/AI/C_MasterAI.h"
+#include "Engine/World.h"
+#include "EngineUtils.h"
+#include "rpg/AI/C_SpawnAI.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -261,10 +262,11 @@ void ASoulsLikeCharacter::Intract()
 	UPrimitiveComponent* HitPrimitiveComponent = OutHit.GetComponent();
 	if (HitPrimitiveComponent)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("talking to npc1"));
+		
 		auto* HitCharacter = Cast<AC_QuestKnight>(HitPrimitiveComponent->GetOwner());
 		if (HitCharacter)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("talking to npc1"));
 			if (IInteractive_CI* interacted = Cast<IInteractive_CI>(HitCharacter)) {
 				interacted->TalkToNPC();
 			}
@@ -606,7 +608,7 @@ void ASoulsLikeCharacter::PerformAttack(TEnumAsByte< EChartacterAction> AttackTy
 						manger->SetAction(AttackType);
 						
 						int32 Value = -1.0f * CombatComponent->GetMainWeapon()->GetStatCostForAction();
-						UE_LOG(LogTemp, Warning, TEXT("hi there %d"), Value);
+						UE_LOG(LogTemp, Warning, TEXT("hi there  in preform attack %d"), Value);
 						StatsComponents->ModifyCurrentStatValue(Estat::Stamina, Value, true);
 						PlayAnimMontage(TempMontage, 1.0f, FName("Default"));
 						AttackIndex++;
@@ -644,7 +646,7 @@ void ASoulsLikeCharacter::PreformAction(UAnimMontage* ActionMontage, EChartacter
 				}
 				TempMontage = CombatComponent->GetMainWeapon()->GetActionMontages(Action)[0];
 				if (IsValid(ActionMontage)) {
-					UE_LOG(LogTemp, Warning, TEXT("asdasdasd %d"), size);
+					
 					manger->SetState(state);
 					manger->SetAction(Action);
 					int32 Value = CombatComponent->GetMainWeapon()->GetStatCostForAction();
@@ -718,7 +720,7 @@ void ASoulsLikeCharacter::PerformDeath()
 	
 	GetCharacterMovement()->DisableMovement();
 
-	
+	DespawnAllMasterAI();
 
 	// Start a timer to respawn
 	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 4.0f, false);
@@ -735,6 +737,32 @@ void ASoulsLikeCharacter::PerformDeathAfterDelay()
 
 	
 	
+}
+
+void ASoulsLikeCharacter::DespawnAllMasterAI()
+{
+
+	UWorld* World = GetWorld();
+	// Ensure the World is valid
+	if (!World) return;
+
+	// Iterate over all instances of AC_MasterAI in the world
+	for (TActorIterator<AC_MasterAI> It(World); It; ++It)
+	{
+		// Get the current actor
+		AC_MasterAI* MasterAI = *It;
+
+		// Ensure the actor is valid
+		if (MasterAI)
+		{
+			// Destroy the actor
+			MasterAI->GetRootComponent()->SetVisibility(false, true);
+			MasterAI->PerformDeath();
+		}
+	}
+
+
+
 }
 
 void ASoulsLikeCharacter::ContinueAttack()
@@ -859,7 +887,7 @@ void ASoulsLikeCharacter::OnStateBegin(EChartacterState CharacterState)
 	if (CharacterState == EChartacterState::Dead) {
 		bisGettingTargeted = false;
 		PerformDeath();
-		SaveGame();
+		
 	}
 }
 
@@ -1007,7 +1035,7 @@ void ASoulsLikeCharacter::SaveGame()
 	if (SaveGameInstance)
 	{
 		// Update the save game data with the current game state
-		SaveGameInstance->PlayerLocation = this->GetActorLocation();
+		SaveGameInstance->PlayerLocation = RespawnPoint.GetLocation();
 		SaveGameInstance->PlayerRotation = this->GetActorRotation();
 		SaveGameInstance->points = this->CharacterPoints;
 		SaveGameInstance->Healthpoints = this->Healthpoints;
@@ -1028,7 +1056,9 @@ void ASoulsLikeCharacter::LoadSaveGame()
 		if (LoadGameInstance)
 		{
 			// Update the character's properties with the loaded values
-			this->SetActorLocation(LoadGameInstance->PlayerLocation);
+			if (LoadGameInstance->PlayerLocation!=FVector::ZeroVector) {
+				this->SetActorLocation(LoadGameInstance->PlayerLocation);
+			}
 			this->SetActorRotation(LoadGameInstance->PlayerRotation);
 			this->CharacterPoints = LoadGameInstance->points;
 			this->Healthpoints = LoadGameInstance->Healthpoints;
@@ -1059,15 +1089,37 @@ void ASoulsLikeCharacter::Respawn()
 	StatsComponents->ModifyCurrentStatValue(Estat::Health,100.f,false);
 	StatsComponents->ModifyCurrentStatValue(Estat::Stamina, 100.f, false);
 	GetMesh()->SetCollisionProfileName("Ragdoll", false);
+	UWorld* World = GetWorld();
+	// Ensure the World is valid
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World is null"));
+		return;
+	}
+
+	// Iterate over all instances of AC_SpawnAI in the world
+	for (TActorIterator<AC_SpawnAI> It(World); It; ++It)
+	{
+		// Get the current actor
+		AC_SpawnAI* SpawnAI = *It;
+
+		// Ensure the actor is valid
+		if (SpawnAI)
+		{
+			// Call the SendPostQuestRequest method
+			SpawnAI->SendPostQestRequest ("x");
+		}
+	}
 	
 
-SaveGame();
+    SaveGame();
 }
 
 void ASoulsLikeCharacter::SetRespawnPoint(FTransform NewRespawnPoint)
 {
 	UE_LOG(LogTemp, Warning,TEXT("asdasdasdasdasdasdasdasdas set point"));
 	RespawnPoint = NewRespawnPoint;
+	SaveGame();
 }
 
 

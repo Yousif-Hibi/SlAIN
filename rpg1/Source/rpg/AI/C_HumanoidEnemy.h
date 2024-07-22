@@ -23,14 +23,17 @@ class RPG_API AC_HumanoidEnemy : public AC_MasterAI
 
 		UFUNCTION()
 		void SetPatrolPath(APatrolPath* NewPatrolPath);
-
+	
 		
 		UFUNCTION(BlueprintImplementableEvent)
 		void ChangeHealth();
 
+		
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* SpinAttackMontage;
 
-
-
+		
+		
 
 
 

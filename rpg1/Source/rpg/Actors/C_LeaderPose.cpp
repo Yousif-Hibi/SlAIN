@@ -2,7 +2,7 @@
 #include "C_LeaderPose.h"
 #include "rpg/Component/C_StatsComponent.h"
 #include "GameFramework/Character.h"
-#include "rpg/DummyCharacter.h"
+
 
 void AC_LeaderPose::AttachActor(FName SocketName)
 {
@@ -25,15 +25,12 @@ void AC_LeaderPose::AttachActor(FName SocketName)
 void AC_LeaderPose::OnEquip()
 {
 	
-	ADummyCharacter* CharacterOwner = Cast<ADummyCharacter>(GetOwner());
-	CharacterOwner->StatsComponents-> ModifyCurrentStatValue(Estat::Armor, 5.0f, false);
+	
 	
 }
 
 void AC_LeaderPose::OnUnequipped()
 {
-	
 
-	ADummyCharacter* CharacterOwner = Cast<ADummyCharacter>(GetOwner());
-	CharacterOwner->StatsComponents->ModifyCurrentStatValue(Estat::Armor, -5.0f, false);
+
 }
