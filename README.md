@@ -3,7 +3,9 @@
 
 ## Project Overview
 
-This project is developed as part of the final year software project by [Yousif Hibi]. The project is built using Unreal Engine 5 and involves various game development elements including AI, weapons, interactables, and API integration.
+This project is developed as part of the final year software project by [Yousif Hibi]. The project is built using Unreal Engine 5 and involves game development elements including AI, weapons, interactables, and API integration. what is written here is just the c++ code for the geme rest of the project is in here https://drive.google.com/drive/folders/1c9dVsXI7eQpTLSbWpmN2WWypml1HRdHV?usp=sharing
+problem with file intgration ot git hub
+
 
 ## Project Structure
 
@@ -36,7 +38,7 @@ All C++ files in this project, with the exception of the files in the `rpg` fold
 ## Setup and Installation
 
 1. Clone the repository to your local machine.
-2. intall contant folder from this link :- 
+2. intall contant folder from this link :- https://drive.google.com/drive/folders/1c9dVsXI7eQpTLSbWpmN2WWypml1HRdHV?usp=sharing
 3. Open the project in Unreal Engine 5.
 4. Make sure to configure any necessary API keys in the `Config/Secrets.ini` file.
 5. build Binarys
