@@ -231,6 +231,11 @@ void AC_SpawnAI::DespawnMages()
 {
 }
 
+void AC_SpawnAI::Respawn()
+{
+	SendPostQestRequest("x");
+}
+
 
 
 

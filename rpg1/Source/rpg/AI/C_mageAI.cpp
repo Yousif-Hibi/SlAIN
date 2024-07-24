@@ -55,7 +55,7 @@ void AC_mageAI::Teleport(FVector Location)
 			[SpawnedEmitter]() {
 				SpawnedEmitter->DestroyComponent();
 			},
-			2.0f, // 2 seconds delay
+			1.0f, 
 			false // One-shot timer
 		);
 	}

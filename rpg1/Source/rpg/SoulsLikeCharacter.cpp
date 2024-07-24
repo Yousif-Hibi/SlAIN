@@ -38,7 +38,8 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "rpg/AI/C_SpawnAI.h"
-
+#include "rpg/AI/C_HumanoidEnemy.h"
+#include "rpg/AI/C_mageAI.h"
 
 //////////////////////////////////////////////////////////////////////////
 #define Intractable ECC_GameTraceChannel1
@@ -705,6 +706,9 @@ void ASoulsLikeCharacter::ApplyHitReactionPhysicsVelocity(float initialSpeed)
 
 void ASoulsLikeCharacter::PerformDeath()
 {
+	isPlayerDead = true;
+	CharacterPoints = 0;
+	DespawnAllMasterAI();
 	FTimerHandle TimerHandle;
 	manger->SetState(EChartacterState::Dead);
 	
@@ -715,15 +719,16 @@ void ASoulsLikeCharacter::PerformDeath()
 					PlayAnimMontage(DeathMontage, 1.0f, FName("Default"));
 
 				}
-
+				isPlayerDead = true;
+				CharacterPoints = 0;
 	ApplyHitReactionPhysicsVelocity(2000);
 	
 	GetCharacterMovement()->DisableMovement();
 
-	DespawnAllMasterAI();
+	
 
 	// Start a timer to respawn
-	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 4.0f, false);
+	GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ASoulsLikeCharacter::Respawn, 6.0f, false);
 
 	
 }
@@ -747,17 +752,32 @@ void ASoulsLikeCharacter::DespawnAllMasterAI()
 	if (!World) return;
 
 	// Iterate over all instances of AC_MasterAI in the world
-	for (TActorIterator<AC_MasterAI> It(World); It; ++It)
+	for (TActorIterator<AC_HumanoidEnemy> It(World); It; ++It)
 	{
 		// Get the current actor
-		AC_MasterAI* MasterAI = *It;
+		AC_HumanoidEnemy* HumanoidEnemy = *It;
 
 		// Ensure the actor is valid
-		if (MasterAI)
+		if (HumanoidEnemy)
 		{
 			// Destroy the actor
-			MasterAI->GetRootComponent()->SetVisibility(false, true);
-			MasterAI->PerformDeath();
+			HumanoidEnemy->GetRootComponent()->SetVisibility(false, true);
+			HumanoidEnemy->PerformDeath();
+			
+		}
+	}
+	for (TActorIterator<AC_mageAI> It(World); It; ++It)
+	{
+		// Get the current actor
+		AC_mageAI* mageAI = *It;
+
+		// Ensure the actor is valid
+		if (mageAI)
+		{
+			// Destroy the actor
+			mageAI->GetRootComponent()->SetVisibility(false, true);
+			mageAI->PerformDeath();
+			
 		}
 	}
 
@@ -1083,6 +1103,7 @@ void ASoulsLikeCharacter::LoadSaveGame()
 void ASoulsLikeCharacter::Respawn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("asdasdasdasdasdasdasdasdas spawn"));
+	
 	SetActorTransform(RespawnPoint);
 	SetActorLocation(RespawnPoint.GetLocation());
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
@@ -1107,11 +1128,11 @@ void ASoulsLikeCharacter::Respawn()
 		if (SpawnAI)
 		{
 			// Call the SendPostQuestRequest method
-			SpawnAI->SendPostQestRequest ("x");
+			SpawnAI->Respawn();
 		}
 	}
 	
-
+	isPlayerDead=false;
     SaveGame();
 }
 

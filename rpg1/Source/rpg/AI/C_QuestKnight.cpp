@@ -360,26 +360,6 @@ void AC_QuestKnight::SendPostQestRequest(FString FileContent)
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void AC_QuestKnight::ProcessReceivedText(const FString& ReceivedText)
 {
     TArray<FString> Lines;

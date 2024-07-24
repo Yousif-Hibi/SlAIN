@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "C_magicSpell.h"
 #include <Components/SphereComponent.h>
 #include "Particles/ParticleSystemComponent.h"
@@ -12,6 +9,7 @@
 #include "Engine/EngineTypes.h"
 #include "rpg/Component/C_StatsComponent.h"
 #include "rpg/AI/C_MasterAI.h"
+
 // Sets default values
 AC_magicSpell::AC_magicSpell()
 {
@@ -28,29 +26,23 @@ AC_magicSpell::AC_magicSpell()
 	ProjectileMovement->MaxSpeed = 1000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
-	ProjectileMovement->ProjectileGravityScale=0;
-
-	
-
-
+	ProjectileMovement->ProjectileGravityScale = 0;
 }
 
 // Called when the game starts or when spawned
 void AC_magicSpell::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Sphere->OnComponentHit.AddDynamic(this,&AC_magicSpell::OnHit);
-	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_magicSpell::AttackDealy, 3.0f, false);
 
+	Sphere->OnComponentHit.AddDynamic(this, &AC_magicSpell::OnHit);
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_magicSpell::AttackDealy, 1.0f, false);
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
 		StartParticales,
-		GetActorLocation(), 
+		GetActorLocation(),
 		GetActorRotation()
 	);
-
 }
 
 // Called every frame
@@ -58,8 +50,13 @@ void AC_magicSpell::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (TargetActor)
+	{
+		FVector Direction = (TargetActor->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+		FVector NewLocation = GetActorLocation() + Direction * ProjectileMovement->MaxSpeed * DeltaTime;
+		SetActorLocation(NewLocation);
+	}
 }
-
 
 void AC_magicSpell::SetSpellDameges(float spellDmg)
 {
@@ -68,22 +65,18 @@ void AC_magicSpell::SetSpellDameges(float spellDmg)
 
 void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	
 	auto spellCaster = GetOwner();
 	if (spellCaster == nullptr) return;
-	
 
 	auto* AIspellCaster = Cast<AC_MasterAI>(spellCaster);
-	
-	//if (AICharacter && AIspellCaster) {
-	//	UE_LOG(LogTemp, Warning, TEXT("hit"));
-	//	return; }
 
-	if (!Hit.GetActor()) {
-		//	UE_LOG(LogTemp, Warning, TEXT("hit %d"), GetDamage());
+	if (!Hit.GetActor())
+	{
 		return;
 	}
-	if (auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor())) {
+
+	if (auto* Character = Cast<ASoulsLikeCharacter>(Hit.GetActor()))
+	{
 		UGameplayStatics::ApplyPointDamage(OtherActor,
 			Dameges,
 			spellCaster->GetActorForwardVector(),
@@ -92,7 +85,8 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			spellCaster,
 			nullptr
 		);
-		if (IsValid(this)) {
+		if (IsValid(this))
+		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
 				hitParticales,
 				GetActorLocation()
@@ -101,7 +95,8 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			this->Destroy();
 		}
 	}
-	else if (auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor())) {
+	else if (auto* AICharacter = Cast<AC_MasterAI>(Hit.GetActor()))
+	{
 		float value = 1;
 		value = Dameges * value;
 
@@ -114,7 +109,9 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			GetInstigatorController(),
 			GetOwner(),
 			nullptr
-		); if (IsValid(this)) {
+		);
+		if (IsValid(this))
+		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(),
 				hitParticales,
 				GetActorLocation()
@@ -123,14 +120,17 @@ void AC_magicSpell::OnHit(UPrimitiveComponent* hitComp, AActor* OtherActor, UPri
 			this->Destroy();
 		}
 	}
-	
-	
-
 }
 
 void AC_magicSpell::AttackDealy()
 {
-	if (this) {
+	if (this)
+	{
 		this->Destroy();
 	}
+}
+
+void AC_magicSpell::SetTargetActor(AActor* NewTarget)
+{
+	TargetActor = NewTarget;
 }

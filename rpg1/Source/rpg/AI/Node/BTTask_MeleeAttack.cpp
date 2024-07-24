@@ -25,27 +25,56 @@ UBTTask_MeleeAttack::UBTTask_MeleeAttack()
 
 EBTNodeResult::Type UBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	auto const OutOfRange = !OwnerComp.GetBlackboardComponent()->GetValueAsBool(GetSelectedBlackboardKey());
-	
-		if (auto const controler = OwnerComp.GetAIOwner()) {
-			if (auto* const AIcharacter = Cast <AC_MasterAI>(controler->GetPawn())) {
-				if (auto* const icombat = Cast<ICombat_CI>(AIcharacter)) {
-					if (MontageHasFinished(AIcharacter)) {
-						icombat->Execute_AIAttack(AIcharacter);
-						FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-						return EBTNodeResult::Succeeded;
+    // Ensure the blackboard component is valid
+    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+  
+    // Check if the AI is out of range
+    bool OutOfRange = !BlackboardComp->GetValueAsBool(GetSelectedBlackboardKey());
 
-					}
-				}
+    // Ensure the controller is valid
+    AAIController* Controller = OwnerComp.GetAIOwner();
+    if (!Controller)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AIController is null!"));
+        return EBTNodeResult::Failed;
+    }
 
-			}
-		}
-	
-	return EBTNodeResult::Failed;
+    // Ensure the AI character is valid
+    AC_MasterAI* AICharacter = Cast<AC_MasterAI>(Controller->GetPawn());
+    if (!AICharacter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AICharacter is null!"));
+        return EBTNodeResult::Failed;
+    }
+
+    // Ensure the AI character implements ICombat_CI
+    ICombat_CI* CombatInterface = Cast<ICombat_CI>(AICharacter);
+    if (!CombatInterface)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AICharacter does not implement ICombat_CI!"));
+        return EBTNodeResult::Failed;
+    }
+
+    // Check if montage has finished
+    if (MontageHasFinished(AICharacter))
+    {
+        CombatInterface->Execute_AIAttack(AICharacter);
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        return EBTNodeResult::Succeeded;
+    }
+
+    return EBTNodeResult::Failed;
 }
 
 bool UBTTask_MeleeAttack::MontageHasFinished(AC_MasterAI* const AICharacter)
 {
+    // Ensure the mesh and anim instance are valid
+    UAnimInstance* AnimInstance = AICharacter->GetMesh()->GetAnimInstance();
+    if (!AnimInstance)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AnimInstance is null for AICharacter: %s"), *AICharacter->GetName());
+        return true; // Return true to avoid blocking other actions if anim instance is null
+    }
 
-	return AICharacter->GetMesh()->GetAnimInstance()->Montage_GetIsStopped(AICharacter->GetAIAttackMontage());
+    return AnimInstance->Montage_GetIsStopped(AICharacter->GetAIAttackMontage());
 }

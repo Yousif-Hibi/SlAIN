@@ -7,6 +7,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "rpg/SoulsLikeCharacter.h"
 #include "rpg/AI/C_MasterAI.h"
+#include <Kismet/GameplayStatics.h>
 
 AC_BaseMagicWeapon::AC_BaseMagicWeapon()
 {
@@ -59,7 +60,7 @@ void AC_BaseMagicWeapon::fire()
 	Spell = GetWorld()->SpawnActor<AC_magicSpell>(magicSpell, ProjectileSpawnLocation, rotator);
 	Spell->SetOwner(MainCharacter);
 	Spell->SetSpellDameges(magicDameges);
-
+	Spell->SetTargetActor(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 }
 
 void AC_BaseMagicWeapon::MagicDamegeSet(float temp)

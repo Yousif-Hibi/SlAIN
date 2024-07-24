@@ -39,6 +39,8 @@ public:
 	int32 intDamege = 20;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float  Dameges = 20.f;
+	UPROPERTY()
+	AActor* TargetActor;
 
 	UFUNCTION()
 	void SetSpellDameges(float spellDmg);
@@ -48,5 +50,6 @@ public:
 	void OnHit(UPrimitiveComponent * hitComp,AActor* OtherActor, UPrimitiveComponent* OtherComp,FVector NormalImpulse,const FHitResult& Hit);
 	UFUNCTION()
 	void AttackDealy();
-	
+	UFUNCTION()
+	void SetTargetActor(AActor* NewTarget);
 };
