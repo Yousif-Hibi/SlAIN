@@ -254,6 +254,9 @@ private:
 
 public:
 	UPROPERTY(EditAnywhere)
+	bool isPlayerDead=false;
+
+	UPROPERTY(EditAnywhere)
 	int32 CharacterPoints=0;
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	int32 Healthpoints=0;

@@ -242,12 +242,9 @@ void AC_MasterAI::AttackEvent()
 {
 	if (ASoulsLikeCharacter* const PlayerCharacter =Cast<ASoulsLikeCharacter> (UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
 		if (mainWeapon) {
-			if (PlayerCharacter->StatsComponents->ReserveToken(1)) {
-				IshasTokken = false;
+			
 				PerformAttack(EChartacterAction::LightAttack, CombatComponent->GetAttackCount(), false);
-				GetWorldTimerManager().SetTimer(tokkenTimerHandle , this, &AC_MasterAI::returnTokken, 5.0f, false);
-
-			}
+				
 
 		}
 	}
@@ -375,29 +372,50 @@ void AC_MasterAI::PerformDeath()
 	FTimerHandle TimerHandle;
 	EnableRagdoll();
 	ApplyHitReactionPhysicsVelocity(2000);
+
 	if (IsValid(CombatComponent->GetMainWeapon())) {
 		CombatComponent->GetMainWeapon()->SimulateWeaponPhysics();
-
 	}
+
 	if (auto* const PlayerCharacter = Cast<ASoulsLikeCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
-		PlayerCharacter->CharacterPoints++;
+		if (PlayerCharacter->isPlayerDead == false) {
+			PlayerCharacter->CharacterPoints++;
+		}
 	}
-	GetCapsuleComponent()->DestroyComponent();
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_MasterAI::PerformDeathAfterDelay, 4.0f, false);
 
-
+	// Optionally handle AI controller removal
+	
+	// Set timer to perform additional cleanup
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AC_MasterAI::PerformDeathAfterDelay, 1.0f, false);
 }
 
 void AC_MasterAI::PerformDeathAfterDelay()
 {
+	AController* AIController = GetController();
+	if (AIController)
+	{
+		// Unpossess the actor
+		AIController->Destroy();
+	}
+
+	// Destroy capsule component
+	GetCapsuleComponent()->DestroyComponent();
+
 	if (IsValid(CombatComponent->GetMainWeapon())) {
 		CombatComponent->GetMainWeapon()->Destroy();
 	}
-	GetMesh()->DestroyComponent();
 
+	// Destroy mesh component
+	if (GetMesh())
+	{
+		GetMesh()->DestroyComponent();
+	}
 
-
+	// Destroy the actor itself
+	Destroy();
 }
+
+
 
 void AC_MasterAI::ContinueAttack()
 {

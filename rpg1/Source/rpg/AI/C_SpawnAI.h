@@ -42,7 +42,8 @@ public:
 	UFUNCTION()
 	void DespawnMages();
 
-
+	UFUNCTION()
+	void Respawn();
 
 	UFUNCTION(BlueprintCallable)
 	void ProcessReceivedText(const FString& ReceivedText);
