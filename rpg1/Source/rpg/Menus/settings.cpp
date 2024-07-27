@@ -147,7 +147,7 @@ void Usettings::OnApplyClicked()
 
 void Usettings::OnBackClicked()
 {
-    this->RemoveFromViewport();
+    this->RemoveFromParent();
     if (WidgetClass)
     {
 

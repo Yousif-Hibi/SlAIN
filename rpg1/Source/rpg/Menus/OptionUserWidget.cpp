@@ -147,7 +147,7 @@ void UOptionUserWidget::OnBackButtonClicked()
     UE_LOG(LogTemp, Warning, TEXT("Back button clicked"));
     UGameplayStatics::SetGamePaused(GetWorld(), false);
     RemoveFromParent();
-    this->RemoveFromViewport();
+    this->RemoveFromParent();
     APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (PlayerController)
     {

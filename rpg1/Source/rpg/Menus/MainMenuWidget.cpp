@@ -42,7 +42,7 @@ void UMainMenuWidget::OnPlayClicked()
 void UMainMenuWidget::OnSettingsClicked()
 {
     
-    this->RemoveFromViewport();
+    this->RemoveFromParent();
     if (WidgetClass)
     {
         

@@ -304,7 +304,7 @@ void ASoulsLikeCharacter::Pause()
 	{
 		UGameplayStatics::SetGamePaused(GetWorld(), false);
 		UE_LOG(LogTemp, Warning, TEXT("Game Resumed"));
-		WidgetInstance->RemoveFromViewport();
+		WidgetInstance->RemoveFromParent();
 	}
 	else
 	{
@@ -338,7 +338,7 @@ void ASoulsLikeCharacter::stats()
 	{
 		UGameplayStatics::SetGamePaused(GetWorld(), false);
 		UE_LOG(LogTemp, Warning, TEXT("Game Resumed"));
-		WidgetInstance->RemoveFromViewport();
+		WidgetInstance->RemoveFromParent();
 	}
 	else
 	{

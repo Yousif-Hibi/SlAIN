@@ -19,7 +19,8 @@ public:
 	int num() const;
 
 
-private:
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (MakeEditWidget = "true", AllowPrivateAccess = "true"))
 	TArray<FVector> PatrolPath;
 

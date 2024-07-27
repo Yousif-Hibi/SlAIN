@@ -166,7 +166,7 @@ void AC_SpawnAI::spawnMage(int32 numToSpawn)
 				SpawnedMage->StatsComponent->SetBaseStateValue(Estat::Health, magiHealth);
 				SpawnedMage->StatsComponent->ModifyCurrentStatValue(Estat::Health, magiHealth, false);
 				SpawnedMage->BehaviorTree = magiBehaviorTree;
-				/*auto* weapon = Cast<AC_BaseMagicWeapon>(SpawnedMage->CombatComponent->GetMainWeapon());
+				auto* weapon = Cast<AC_BaseMagicWeapon>(SpawnedMage->CombatComponent->GetMainWeapon());
 				if (weapon)
 				{
 					weapon->MagicDamegeSet(magiDamage);
@@ -174,7 +174,7 @@ void AC_SpawnAI::spawnMage(int32 numToSpawn)
 				else     
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Weapon  is null"));
-				}*/
+				}
 				UE_LOG(LogTemp, Warning, TEXT("Mage %d spawned and closest patrol path assigned."), i);
 			}
 			else
