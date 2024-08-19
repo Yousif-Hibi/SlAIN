@@ -9,6 +9,7 @@
 #include "C_SpawnAI.generated.h"
 
 class AC_mageAI;
+class AC_HumanoidEnemy;
 UCLASS()
 class RPG_API AC_SpawnAI : public AActor
 {
@@ -32,6 +33,8 @@ public:
 	void SendPostRequest(FString ApiEndpoint, FString JsonContent);
 	UFUNCTION()
 	void SendPostQestRequest(FString FileContent);
+	UFUNCTION(BlueprintCallable)
+	void ProcessReceivedText(const FString& ReceivedText);
 
 	UFUNCTION()
 	void spawnMage(int32 numToSpawn);
@@ -45,8 +48,7 @@ public:
 	UFUNCTION()
 	void Respawn();
 
-	UFUNCTION(BlueprintCallable)
-	void ProcessReceivedText(const FString& ReceivedText);
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	TSubclassOf<AC_mageAI> MageClass;

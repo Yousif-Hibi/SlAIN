@@ -45,8 +45,18 @@ public:
 	void ProcessReceivedText(const FString& ReceivedText);
 	UFUNCTION(BlueprintCallable)
 	void CreateQuestFile();
+	UFUNCTION(BlueprintCallable)
+	void ShowYesNoOptions(FString str);
+	UFUNCTION(BlueprintCallable)
+	void OnYesSelected();
+	UFUNCTION(BlueprintCallable)
+	void OnNoSelected();
+	UPROPERTY(EditAnywhere)
+	int32 ReputationIndex =0;
 	UPROPERTY(EditAnywhere)
 	int32 PartNumber = 1;
+	UFUNCTION()
+	void giveRewored();
 	UFUNCTION()
 	void Teleport(FVector Location);
 	UFUNCTION()
@@ -56,21 +66,36 @@ public:
 	void SendPostRequest(FString ApiEndpoint, FString JsonContent);
 	
 	void SendPostQestRequest(FString FileContent);
+	UFUNCTION()
+	void moveDoors();
 
+
+
+	  
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FVector QuestLocation;
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FRotator  QuestRotation;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AC_PickupActor> condoiet;
+
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> widget;
-	
+	UPROPERTY()
+	TSubclassOf<UUserWidget> widgetanswer;
 	UPROPERTY()
 	UUserWidget* CurrentWidget;
-
-	FTimerHandle WidgetTimerHandle;
 	UPROPERTY()
+	UUserWidget* CurrentanswerWidget;
+	FTimerHandle WidgetTimerHandle;
+
+
+
+
+	UPROPERTY() 
 	bool bAllowedTOTelleport = false;
 
 	TArray<FString> Dialog;

@@ -10,7 +10,7 @@
 
 #include "settings.generated.h"
 
-
+class UButton;
 
 /**
  * 

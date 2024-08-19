@@ -715,8 +715,8 @@ void ASoulsLikeCharacter::PerformDeath()
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	
 				if (animInstance) {
-					
-					PlayAnimMontage(DeathMontage, 1.0f, FName("Default"));
+					float PlayRate = 13.0f / 16.0f;
+					PlayAnimMontage(DeathMontage, PlayRate, FName("Default"));
 
 				}
 				isPlayerDead = true;
@@ -1055,7 +1055,7 @@ void ASoulsLikeCharacter::SaveGame()
 	if (SaveGameInstance)
 	{
 		// Update the save game data with the current game state
-		SaveGameInstance->PlayerLocation = RespawnPoint.GetLocation();
+	//	SaveGameInstance->PlayerLocation = RespawnPoint.GetLocation();
 		SaveGameInstance->PlayerRotation = this->GetActorRotation();
 		SaveGameInstance->points = this->CharacterPoints;
 		SaveGameInstance->Healthpoints = this->Healthpoints;
@@ -1068,7 +1068,7 @@ void ASoulsLikeCharacter::SaveGame()
 }
 
 void ASoulsLikeCharacter::LoadSaveGame()
-{
+{                                 
 	
 		// Load the save game instance from the specified slot
 		UC_SaveGame* LoadGameInstance = Cast<UC_SaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("PlayerSaveSlot"), 0));
@@ -1076,8 +1076,8 @@ void ASoulsLikeCharacter::LoadSaveGame()
 		if (LoadGameInstance)
 		{
 			// Update the character's properties with the loaded values
-			if (LoadGameInstance->PlayerLocation!=FVector::ZeroVector) {
-				this->SetActorLocation(LoadGameInstance->PlayerLocation);
+			if (LoadGameInstance->PlayerLocation != FVector::ZeroVector) {
+				//this->SetActorLocation(LoadGameInstance->PlayerLocation);
 			}
 			this->SetActorRotation(LoadGameInstance->PlayerRotation);
 			this->CharacterPoints = LoadGameInstance->points;
@@ -1098,14 +1098,14 @@ void ASoulsLikeCharacter::LoadSaveGame()
 
 
 
-
+   
 
 void ASoulsLikeCharacter::Respawn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("asdasdasdasdasdasdasdasdas spawn"));
 	
 	SetActorTransform(RespawnPoint);
-	SetActorLocation(RespawnPoint.GetLocation());
+	SetActorLocation(FVector(300.f,0.f,92.f));
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	StatsComponents->ModifyCurrentStatValue(Estat::Health,100.f,false);
 	StatsComponents->ModifyCurrentStatValue(Estat::Stamina, 100.f, false);

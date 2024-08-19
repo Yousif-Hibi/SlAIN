@@ -36,6 +36,39 @@ public:
 	APatrolPath * pathplacer;
 	UPROPERTY(EditAnywhere)
 	AC_SpawnAI * SpawnEnemyplacer;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint2;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint3;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint4;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint5;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint6;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint7;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint8;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* spawnPoint9;
+
+
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint2;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint3;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint4;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint5;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint6;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint7;
+	UPROPERTY(EditAnywhere)
+	UArrowComponent* wallspawnPoint8;
+
 protected:
 	virtual void BeginPlay() override;
 

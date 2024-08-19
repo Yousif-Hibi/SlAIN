@@ -64,7 +64,7 @@ void AC_BaseWeapon::OnEquipped()
 
 
 		if (IAnimInstance_CI* anim = Cast<IAnimInstance_CI>(Character->GetMesh()->GetAnimInstance())) {
-
+			Damege = 50;
 			//resone for crash 
 			anim->UpdateCombatType(CombatType);
 			Character->combatType = CombatType;

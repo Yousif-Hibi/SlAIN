@@ -1,32 +1,30 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "C_fillerWall.h"
+#include "C_door.h"
 
 // Sets default values
-AC_fillerWall::AC_fillerWall()
+AC_door::AC_door()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	WallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WallMesh"));
-	RootComponent = WallMesh;
+	DoorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorMesh"));
+	RootComponent = DoorMesh;
 
-	// Set the location and scale
 	
-	WallMesh->SetWorldScale3D(FVector(1.0f, 6.0f, 7.0f));
 
 	
 }
 
 // Called when the game starts or when spawned
-void AC_fillerWall::BeginPlay()
+void AC_door::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AC_fillerWall::Tick(float DeltaTime)
+void AC_door::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

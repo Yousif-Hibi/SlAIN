@@ -129,7 +129,8 @@ void AC_SpawnAI::SendPostQestRequest(FString FileContent)
 			}
 			int32 IntPoints = static_cast<int32>(points)+d;
 			UE_LOG(LogTemp, Warning, TEXT("sdfsdfsdfsdfsd %d."), IntPoints);
-
+			float endpoints = (IntPoints / 10) * 4;
+			IntPoints = static_cast<int32>(endpoints);
 			FString JsonPart1 = TEXT("{\"contents\":[{\"parts\":[{\"text\":\"");
 			FString JsonPart2 = TEXT("  i want you to choose between making Adding More NPCs & Varying Strength or Creating a Powerful Elite ");
 			FString JsonPart3 =  FString::Printf(TEXT("I want to spawn 1-4 npcs between Knights and mages. Can you tell me how many to spawn, and you have %d points between everything that spawns. "), IntPoints)  ;

@@ -35,7 +35,7 @@ void UMainMenuWidget::OnPlayClicked()
         PlayerController->SetInputMode(FInputModeGameOnly());
     }
 
-    UGameplayStatics::OpenLevel(GetWorld(), "ironClanMap");
+    UGameplayStatics::OpenLevel(GetWorld(), "Dungen");
     
 }
 

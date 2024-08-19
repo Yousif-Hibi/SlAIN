@@ -20,6 +20,15 @@
 #include "JsonUtilities.h"
 #include "Misc/ConfigCacheIni.h"
 #include "rpg/AI/PatrolPath.h"
+#include "Components/Button.h"    
+#include "rpg/Actors/C_PickupActor.h"
+#include "rpg/SoulsLikeCharacter.h"
+#include "rpg/Dungen/C_door.h"
+#include "EngineUtils.h" 
+
+
+
+
 
 
 AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
@@ -30,10 +39,19 @@ AC_QuestKnight::AC_QuestKnight(const FObjectInitializer& ObjectInitializer)
         widget = QuestText.Class;
         
     }
+    static ConstructorHelpers::FClassFinder<UUserWidget> QuestTextAnswer(TEXT("/Game/Static/quests/WB_QuestAnswer"));
+    if (QuestTextAnswer.Succeeded())
+    {
+        widgetanswer = QuestTextAnswer.Class; 
+
+    }
+    else {
+        UE_LOG(LogTemp, Error, TEXT("Failed to find   QuestTextBlock"));
+    }
     Loadgame();
        fileDialog = {
-        TEXT("In the desolate and ravaged landscape of The Rustborn Wastes, the remnants of a once-glorious world stand as stark reminders of its past conflicts. The land, now divided into five distinct regions, each governed by one of the elemental clans, bears witness to the aftermath of ancient wars. These clans, bound by their elemental conduits, hold dominion over their territories, their powers a blend of earth's primal forces. The Ironclad Clan, among these, is the most formidable, its stronghold a bastion of iron and strength. As a knight from a far-off land, you journey to this fractured world with a singular aim: to claim the Iron Conduit, a source of immense power, and reshape the balance within these war-torn lands."),
-        TEXT("Long ago, in a desperate bid to secure their dominion and harness the elemental powers more effectively, the clans of The Rustborn Wastes devised a series of powerful enchantments. These magics, intended to bind and channel elemental forces, inadvertently transformed their most devoted followers into humanoid goats—creatures both wise and formidable. These beings, known as the Gauron, now serve as the clan’s most elite guardians and emissaries. Possessing a unique blend of human intellect and goat-like resilience, they have become key figures in the protection of the conduits. Their transformation was a testament to the depth of their commitment, and now, they stand as both allies and obstacles in your quest to obtain the Iron Conduit."),
+        TEXT("In the desolate and ravaged landscape of The Rustborn Wastes, the remnants of a once-glorious world stand as stark reminders of its past conflicts. The land, now divided into distinct regions, each governed by one of the elemental clans, bears witness to the aftermath of ancient wars. These clans, bound by their elemental conduits, hold dominion over their territories, their powers a blend of earth's primal forces. The Clan, among these, is the most formidable, its stronghold a bastion of strength. As a knight from a far-off land, you journey to this fractured world with a singular aim: to claim the  Conduit, a source of immense power, and reshape the balance within these war-torn lands."),
+        TEXT("Long ago, in a desperate bid to secure  their dominion and harness the elemental powers more effectively, the clans of The Rustborn Wastes devised a series of powerful enchantments. These magics, intended to bind and channel elemental forces, inadvertently transformed their most devoted followers into humanoid goats—creatures both wise and formidable. These beings, known as the Gauron, now serve as the clan’s most elite guardians and emissaries. Possessing a unique blend of human intellect and goat-like resilience, they have become key figures in the protection of the conduits. Their transformation was a testament to the depth of their commitment, and now, they stand as both allies and obstacles in your quest to obtain the Iron Conduit."),
         TEXT("As you venture deeper into the Ironclad Clan’s citadel, you encounter the Gauron, who serve as both protectors and gatekeepers of the conduit. The path to the Iron Conduit is fraught with challenges, but through clever strategy and bravery, you manage to forge a crucial alliance with a sympathetic Gauron. This ally, seeing the righteousness of your cause, aids you in navigating the citadel's defenses and overcoming its trials. Together, you confront the clan’s leaders in a climactic battle, showcasing your skill and determination. With the help of your new ally, you successfully claim the Iron Conduit, securing its power and marking a pivotal moment in the transformation of The Rustborn Wastes.")
     };
 }
@@ -46,21 +64,34 @@ void AC_QuestKnight::TalkToNPC()
     if (Dialog.Num() > DialogIndex)
     {
         UE_LOG(LogTemp, Warning, TEXT("%s"), *Dialog[DialogIndex]);
-        ShowWidget(Dialog[DialogIndex]);
+       
+       
        callApi->SynthesizeSpeech(Dialog[DialogIndex]);
+       if (Dialog[DialogIndex].Contains("?"))
+       {
+           // Show Yes/No buttons on the UI
+          ShowYesNoOptions(Dialog[DialogIndex]);
+         
+       }
+       else {
+           ShowWidget(Dialog[DialogIndex]);
+       }
     }
     else
     {
-        if (PartNumber <= 3) {
+        if (PartNumber < 3) {
             Savegame();
             DialogIndex = -1;
             Dialog.Empty();
-            bAllowedTOTelleport = true;
             PartNumber++;
             fileToRead();
             
         }
+        else {
+            moveDoors();
+        }
     }
+    
 }
 
 void AC_QuestKnight::ShowWidget(FString str)
@@ -228,11 +259,122 @@ void AC_QuestKnight::CreateQuestFile()
     }
 }
 
+void AC_QuestKnight::ShowYesNoOptions(FString str)
+{
+
+    if (UWorld* World = GetWorld())
+    {
+        if (CurrentWidget)
+        {
+            CurrentWidget->RemoveFromParent();
+            CurrentWidget = nullptr;
+        }
+
+
+
+        if (widgetanswer)
+        {
+
+            UUserWidget* YesNoWidgetInstance = CreateWidget<UUserWidget>(World, widgetanswer);
+            if (YesNoWidgetInstance)
+            {
+                APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+                if (PlayerController)
+                {
+                    PlayerController->bShowMouseCursor = true;
+                    PlayerController->SetInputMode(FInputModeUIOnly());
+                }
+                CurrentWidget = CreateWidget<UUserWidget>(World, widgetanswer);
+                if (CurrentWidget)
+                {
+                    CurrentWidget->AddToViewport();
+                    UButton* YesButton = Cast<UButton>(CurrentWidget->GetWidgetFromName(TEXT("yes")));
+                    UButton* NoButton = Cast<UButton>(CurrentWidget->GetWidgetFromName(TEXT("no")));
+
+                    if (YesButton)
+                    {
+                        YesButton->OnClicked.AddDynamic(this, &AC_QuestKnight::OnYesSelected);
+                    }
+
+                    if (NoButton)
+                    {
+                        NoButton->OnClicked.AddDynamic(this, &AC_QuestKnight::OnNoSelected);
+                    }
+                    // Find the TextBlock in the widget
+                    UTextBlock* QuestTextBlock = Cast<UTextBlock>(CurrentWidget->GetWidgetFromName(TEXT("questText")));
+                    if (QuestTextBlock)
+                    {
+                        QuestTextBlock->SetText(FText::FromString(str));
+                    }
+                    else
+                    {
+                        UE_LOG(LogTemp, Error, TEXT("Failed to find QuestTextBlock"));
+                    }
+
+                    // Set a timer to remove the widget after 5 seconds
+                   // GetWorldTimerManager().SetTimer(WidgetTimerHandle, this, &AC_QuestKnight::RemoveCurrentWidget, 5.0f, false);
+
+
+                // Bind buttons to functions
+                    
+
+
+                }
+
+            }
+        }
+    }
+}
+void AC_QuestKnight::OnYesSelected()
+{
+   
+    // Handle the logic when Yes is selected
+    UE_LOG(LogTemp, Warning, TEXT("Yes Selected"));
+    // Continue with the quest or take specific action
+    RemoveCurrentWidget();
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PlayerController)
+    {
+        PlayerController->bShowMouseCursor = false;
+        PlayerController->SetInputMode(FInputModeGameOnly());
+    }
+    if (auto* const PlayerCharacter =Cast<ASoulsLikeCharacter> (UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+        ReputationIndex++;
+        PlayerCharacter->ReputationIndex = ReputationIndex;
+    }
+
+    if (ReputationIndex == 10) {
+        giveRewored();
+    }
+    UE_LOG(LogTemp, Warning, TEXT("reputation , %d"),ReputationIndex);
+}   
+
+void AC_QuestKnight::OnNoSelected()
+{
+    // Handle the logic when No is selected
+    UE_LOG(LogTemp, Warning, TEXT("No Selected"));
+    // Continue with the quest or take specific action
+    RemoveCurrentWidget();
+    if (auto* const PlayerCharacter = Cast<ASoulsLikeCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+        ReputationIndex--;
+        PlayerCharacter->ReputationIndex = ReputationIndex;
+    }
+   
+    UE_LOG(LogTemp, Warning, TEXT("reputation , %d"), ReputationIndex);
+}
+
+void AC_QuestKnight::giveRewored()
+{
+    FVector Location= GetActorLocation();
+    Location.X += 50;
+    auto * reword = GetWorld()->SpawnActor<AC_PickupActor>(condoiet, Location, FRotator::ZeroRotator);
+}
+
 void AC_QuestKnight::Teleport(FVector Location)
 {
    
     if (bAllowedTOTelleport) {
-        SetActorLocation(Location);
+       // SetActorLocation(Location);
         bAllowedTOTelleport = false;
        
     }
@@ -335,7 +477,7 @@ void AC_QuestKnight::SendPostRequest(FString ApiEndpoint, FString JsonContent)
     Request->SetContentAsString(JsonContent);
     Request->ProcessRequest();
 }
-
+                                       
 
 
 
@@ -347,7 +489,7 @@ void AC_QuestKnight::SendPostQestRequest(FString FileContent)
 
     if (GConfig->GetString(TEXT("APIKeys"), TEXT("GeminiaiKey"), APIKey, ConfigFilePath))
     {
-        FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 9 short Dialogue sentences, no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
+        FString JsonPayload = FString::Printf(TEXT("{\"contents\":[{\"parts\":[{\"text\":\"give me nothing but the 6 short Dialogue sentences and 3  in a yes and no form qustions as a part of the dialogue , no numbers, no pretext, make it soulsborne style, %s\"}]}]}"), *FileContent);
 
 
         FString ApiEndpoint = TEXT("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=");
@@ -358,6 +500,23 @@ void AC_QuestKnight::SendPostQestRequest(FString FileContent)
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to retrieve GeminiaiKey from Secrets.ini"));
     }
+}
+
+void AC_QuestKnight::moveDoors()
+{
+    for (TActorIterator<AC_door> DoorItr(GetWorld()); DoorItr; ++DoorItr)
+    {
+        // Get the current location of the door
+        FVector CurrentLocation = DoorItr->GetActorLocation();
+
+        // Move the door 300 units in the Z direction
+        FVector NewLocation = CurrentLocation + FVector(0, 0, -300);
+
+        // Set the new location of the door
+        DoorItr->SetActorLocation(NewLocation);
+    }
+
+
 }
 
 void AC_QuestKnight::ProcessReceivedText(const FString& ReceivedText)

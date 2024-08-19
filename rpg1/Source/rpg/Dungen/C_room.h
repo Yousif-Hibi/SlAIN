@@ -51,7 +51,10 @@ public:
 
     UPROPERTY(EditAnywhere)
     class UArrowComponent* directionArrow;
-
+    UPROPERTY(EditAnywhere)
+    UArrowComponent* spawnPoint1;
+    UPROPERTY(EditAnywhere)
+    UArrowComponent* wallspawnPoint1;
     // Exits
     UPROPERTY(EditAnywhere)
     USceneComponent* Exits;
@@ -59,7 +62,10 @@ public:
     // Floor collisions
     UPROPERTY(EditAnywhere)
     USceneComponent* collisons;
-
+    UPROPERTY(EditAnywhere)
+    USceneComponent* floorSpawnPoints;
+    UPROPERTY(EditAnywhere)
+    USceneComponent* wallSpawnPoints;
     UPROPERTY(EditAnywhere)
    class  UBoxComponent* floorCollision1;
    UPROPERTY(EditAnywhere)

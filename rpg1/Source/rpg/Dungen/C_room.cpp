@@ -53,6 +53,19 @@ void AC_room::attach()
     Exits = CreateDefaultSubobject<USceneComponent>(TEXT("Exits"));
     Exits->SetupAttachment(RootComponent);
 
+    floorSpawnPoints = CreateDefaultSubobject<USceneComponent>(TEXT("floorSpawnPoints"));
+    floorSpawnPoints->SetupAttachment(RootComponent);
+
+    spawnPoint1 = CreateDefaultSubobject<UArrowComponent>(TEXT("spawnPoint1"));
+    spawnPoint1->SetupAttachment(floorSpawnPoints);
+    
+
+    wallSpawnPoints = CreateDefaultSubobject<USceneComponent>(TEXT("wallSpawnPoints"));
+    wallSpawnPoints->SetupAttachment(RootComponent);
+
+    wallspawnPoint1 = CreateDefaultSubobject<UArrowComponent>(TEXT("wallspawnPoint1"));
+    wallspawnPoint1->SetupAttachment(wallSpawnPoints);
+
     collisons = CreateDefaultSubobject<USceneComponent>(TEXT("collisons"));
     collisons->SetupAttachment(RootComponent);
 

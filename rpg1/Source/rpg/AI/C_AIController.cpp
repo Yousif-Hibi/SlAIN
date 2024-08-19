@@ -71,7 +71,7 @@ void AC_AIController::SetUpPerceptionSystem()
         {
             sightConfig->SightRadius = 2000.0f;
             sightConfig->LoseSightRadius = sightConfig->SightRadius + 500.0f;
-            sightConfig->PeripheralVisionAngleDegrees = 130.0f;
+            sightConfig->PeripheralVisionAngleDegrees = 140.0f;
             sightConfig->SetMaxAge(5.0f);
             sightConfig->AutoSuccessRangeFromLastSeenLocation = 5.0f;
             sightConfig->DetectionByAffiliation.bDetectEnemies = true;

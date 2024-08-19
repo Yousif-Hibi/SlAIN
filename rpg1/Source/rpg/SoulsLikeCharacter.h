@@ -294,6 +294,9 @@ public:
 	 float SprintingSpeed = 700.0f;
 
 	 UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	 int32 ReputationIndex = 0;
+
+	 UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class USoundCue *HitSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UParticleSystem* hitParticals;
